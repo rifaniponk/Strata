@@ -5116,6 +5116,10 @@ def make_handler(svc: Service):
             """Without an API key, every request (any method) first passes the Host check: DNS rebinding protection
             (host_allowed).  With a key a rebinding page cannot authenticate, so the check is skipped: tunnels and
             proxies that pass their own name on keep working."""
+            # Back to 1.0 for every request: the static-asset branch raises this to 1.1 for its own response, and a
+            # browser reuses that kept-alive connection for the next request - which may be an SSE stream, and SSE
+            # here ends by closing the socket, which only 1.0 allows.
+            self.protocol_version = "HTTP/1.0"
             if not super().parse_request():
                 return False
             host = self.headers.get("Host")
