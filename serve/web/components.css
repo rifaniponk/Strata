@@ -130,7 +130,9 @@ a{color:var(--st-accent-text);text-decoration:none} a:hover{text-decoration:unde
 /* form controls */
 .st-field{display:flex;flex-direction:column;gap:8px}
 .st-label{display:flex;justify-content:space-between;font-size:var(--st-fs-sm);font-weight:var(--st-fw-medium);color:var(--st-ink-soft)}
-.st-label output{font-family:var(--st-font-mono);font-variant-numeric:tabular-nums;color:var(--st-accent-text)}
+.st-label output{color:var(--st-ink-muted)}
+/* only the drawer's live values are readouts; elsewhere an <output> is just a note */
+.st-drawer .st-label output{font-family:var(--st-font-mono);font-variant-numeric:tabular-nums;color:var(--st-accent-text)}
 .st-input{height:42px;padding:0 13px;border-radius:var(--st-r-md);border:1px solid var(--st-line);background:var(--st-bg-2);color:var(--st-ink);font:400 var(--st-fs-md) var(--st-font)}
 .st-input::placeholder{color:var(--st-ink-muted)}
 .st-input:focus{outline:0;border-color:color-mix(in srgb,var(--st-accent) 60%,var(--st-line));box-shadow:0 0 0 3px var(--st-accent-tint)}
