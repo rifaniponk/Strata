@@ -1,4 +1,4 @@
-/* Strata web app - layout on top of tokens.css + components.css (the Strata UI kit). Colours, type, radii and
+/* ponkAI web app - layout on top of tokens.css + components.css (the ponkAI UI kit). Colours, type, radii and
    shadows come only from the kit's tokens. */
 [hidden] { display: none !important; }
 html, body { height: 100%; }
@@ -10,6 +10,10 @@ main { flex: 1; min-height: 0; display: flex; }
 .small { font-size: var(--st-fs-xs); }
 .card-title { font-weight: var(--st-fw-bold); font-size: var(--st-fs-base); color: var(--st-ink); }
 .st-header { position: relative; z-index: 2; flex: none; }
+.st-header__brand { display: inline-flex; align-items: center; gap: var(--st-s-2); }
+.brand-mark { width: 22px; height: 22px; flex: none; color: var(--st-accent); }
+.brand-name { font-weight: var(--st-fw-regular); letter-spacing: -.01em; }
+.brand-name b { font-weight: var(--st-fw-black); color: var(--st-accent-text); }
 .st-header .st-tabs { margin-left: var(--st-s-4); }
 #drawer-close .st-icon { transform: rotate(-90deg); }
 
