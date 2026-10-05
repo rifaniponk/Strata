@@ -23,7 +23,8 @@ const PARTS = {
 
 export function createPcViz(canvas) {
   const renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: true, powerPreference: "low-power"});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));   // MSAA on a 4K buffer costs more than it shows
+  // the base ceiling; the frame loop scales down from here whenever the GPU is busy with the model
+  const BASE_DPR = Math.min(window.devicePixelRatio || 1, 1.25);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 300);
 
@@ -63,8 +64,6 @@ export function createPcViz(canvas) {
   const standard = (color, o = {}) => keep(new THREE.MeshStandardMaterial({color, roughness: 0.62, metalness: 0.35, ...o}));
 
   const matShell = standard("#090e14", {roughness: 0.88, metalness: 0.25, transparent: true, opacity: 0.97});
-  const matPanelGlass = keep(new THREE.MeshStandardMaterial({
-    color: "#0b1118", roughness: 0.1, metalness: 0.05, transparent: true, opacity: 0.07, side: THREE.DoubleSide}));
   const matBoard = standard("#0b1713", {roughness: 0.95, metalness: 0.1});
   const matDark = standard("#080c11", {roughness: 0.92, metalness: 0.2});
   const matMetal = standard("#1b232d", {roughness: 0.7, metalness: 0.45});
@@ -204,9 +203,6 @@ export function createPcViz(canvas) {
   panel(box(W * 2, H * 2, 0.4), 0, 0, -D);                    // back wall
   shell.add(instanced(box(0.35, H * 2, 0.35), matShell,        // side rails, so the frame still has a body
     [[-W, 0, D - 0.2], [-W, 0, -D + 0.2], [W, 0, D - 0.2], [W, 0, -D + 0.2]], "case"));
-  // the open side is glass: barely there, but it catches the lights
-  const glass = mesh(keep(new THREE.PlaneGeometry(W * 2, H * 2)), matPanelGlass, 0, 0, D, "case");
-  shell.add(glass);
   // neon edge frame - the signature of the theme, and it reads as a case's lit trim
   const caseFrame = edgesOf(box(W * 2 + 0.5, H * 2 + 0.5, D * 2 + 0.5), matEdge);
   shell.add(caseFrame);
@@ -495,13 +491,29 @@ export function createPcViz(canvas) {
 
   // ---------------------------------------------------------------- frame loop
   const c1 = new THREE.Color(), c2 = new THREE.Color();
-  let raf = 0, running = false, prev = 0, spinA = 0, spinB = 0, spinC = 0, spinD = 0, clock = 0;
+  let raf = 0, wantRun = false, onScreen = true, prev = 0, spinA = 0, spinB = 0, spinC = 0, spinD = 0, clock = 0;
+
+  // Dynamic resolution. This page shares one GPU with the model it is watching, so while the engine is busy a full
+  // resolution frame can miss its deadline and the animation judders. Rather than drop frames, draw fewer pixels
+  // and climb back when the GPU is free again - the motion stays smooth, the image just softens for a moment.
+  let resScale = 1, slowRun = 0, fastRun = 0, warmup = 0;
 
   function frame(now) {
     raf = requestAnimationFrame(frame);
     const dt = Math.min(0.1, (now - prev) / 1000 || 0.016);
     prev = now;
     clock += dt;
+
+    const ms = dt * 1000;
+    if (warmup < 40) {
+      warmup++;                                   // the first frames compile shaders; they are never representative
+    } else if (ms > 22) {
+      slowRun++; fastRun = 0;
+      if (slowRun >= 10 && resScale > 0.55) { resScale = Math.max(0.55, resScale - 0.15); slowRun = 0; resize(); }
+    } else if (ms < 15) {
+      fastRun++; slowRun = 0;
+      if (fastRun >= 240 && resScale < 1) { resScale = Math.min(1, resScale + 0.1); fastRun = 0; resize(); }
+    }
 
     for (let i = 0; i < KEYS.length; i++) { const k = KEYS[i]; live[k] = ease(live[k], target[k], 3.2, dt); }
 
@@ -626,27 +638,33 @@ export function createPcViz(canvas) {
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
+    renderer.setPixelRatio(BASE_DPR * resScale);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
   const ro = new ResizeObserver(resize);
   ro.observe(canvas);
+  // Scrolling down to the data cards leaves this off screen; there is no reason to keep drawing it there.
+  const io = new IntersectionObserver((es) => { onScreen = es[0].isIntersecting; sync(); }, {threshold: 0});
+  io.observe(canvas);
   resize();
   placeCamera();
 
-  function setRunning(on) {
-    if (on === running) return;
-    running = on;
-    if (on) { prev = performance.now(); resize(); raf = requestAnimationFrame(frame); }
+  function sync() {
+    const go = wantRun && onScreen;
+    if (go === !!raf) return;
+    if (go) { prev = performance.now(); resize(); raf = requestAnimationFrame(frame); }
     else { cancelAnimationFrame(raf); raf = 0; }
   }
+  function setRunning(on) { wantRun = on; sync(); }
 
   canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); setRunning(false); });
 
   function dispose() {
     setRunning(false);
     ro.disconnect();
+    io.disconnect();
     themeWatch.disconnect();
     for (const d of disposables) d.dispose && d.dispose();
     scene.traverse((o) => { o.geometry && o.geometry.dispose(); });
