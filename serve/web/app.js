@@ -581,13 +581,35 @@ function samplingUntouched(s) {
 }
 let settings = {...DEFAULTS, ...store.get("sampling", {})};
 if (samplingUntouched(settings)) settings.temperature = DEFAULTS.temperature;
-let messages = store.get("chat", []);
+let messages = [];
 let attachments = [];                 // {name, url}
 let busy = null;                      // {controller, msg}
 
-function saveChat() {
-  store.set("chat", messages.map((m) => ({...m, images: (m.images || []).map((i) => ({name: i.name})),
-                                           files: (m.files || []).map((f) => ({name: f.name}))})));
+// ------------------------------------------------------------------ Conversations (the sidebar)
+let conversations = [];               // summaries from the server: {id, title, created_at, updated_at}, newest first
+let activeId = null;                  // the open conversation's server id; null = not saved yet (a fresh chat)
+let conversationsOk = true;           // false when the server could not be reached (no key yet, offline, ...)
+
+function stripForSave(m) {
+  return {...m, images: (m.images || []).map((i) => ({name: i.name})), files: (m.files || []).map((f) => ({name: f.name}))};
+}
+function conversationTitle() {
+  const first = messages.find((m) => m.role === "user" && m.text);
+  return first ? first.text.slice(0, 60) : "New chat";
+}
+async function saveChat() {
+  if (!messages.length) return;
+  try {
+    const r = await fetch("api/conversations", {method: "POST", headers: headers(true),
+      body: JSON.stringify({id: activeId, title: conversationTitle(), messages: messages.map(stripForSave)})});
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const saved = await r.json();
+    activeId = saved.id;
+    store.set("activeConversation", activeId);
+    conversations = [saved, ...conversations.filter((c) => c.id !== saved.id)];
+    conversationsOk = true;
+    renderSidebar();
+  } catch (e) { /* offline or no key yet: the chat stays in memory for this session, saved on the next try */ }
 }
 function timeStr(t) { return new Date(t).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}); }
 
@@ -898,15 +920,147 @@ $("input").addEventListener("keydown", (e) => {
 function autosize() { const t = $("input"); t.style.height = "auto"; t.style.height = `${Math.min(t.scrollHeight, innerHeight * 0.4)}px`; }
 $("input").addEventListener("input", autosize);
 
-$("new-btn").onclick = () => {
+function startNewChat() {
   if (busy) { toast("warn", "Still writing", "Stop the answer first."); return; }
-  if (!messages.length) return;
-  const backup = messages;
+  activeId = null;
   messages = [];
-  saveChat();
+  store.set("activeConversation", null);
   renderChat();
-  toast("info", "New chat", "The last one was cleared.", 6000, {label: "Undo", run: () => { messages = backup; saveChat(); renderChat(); }});
-};
+  renderSidebar();
+}
+$("sidebar-new-btn").onclick = startNewChat;
+
+let sidebarOpen = store.get("sidebarOpen", innerWidth > 900);
+function setSidebar(open) {
+  sidebarOpen = open;
+  store.set("sidebarOpen", open);
+  $("chat-sidebar").hidden = !open;
+  $("sidebar-open-btn").hidden = open;
+}
+setSidebar(sidebarOpen);
+$("sidebar-collapse-btn").onclick = () => setSidebar(false);
+$("sidebar-open-btn").onclick = () => setSidebar(true);
+
+function renderSidebar() {
+  const list = $("conv-list");
+  list.querySelectorAll(".conv-item").forEach((e) => e.remove());
+  $("conv-empty").hidden = conversations.length > 0;
+  $("conv-empty").textContent = conversationsOk ? "No saved conversations yet."
+                                                 : "Couldn't load conversations: add your API key under About > Settings.";
+  for (const c of conversations) {
+    const el = document.createElement("div");
+    el.className = "conv-item" + (c.id === activeId ? " conv-item--active" : "");
+    el.dataset.id = c.id;
+    el.innerHTML = `<button type="button" class="conv-item__title" title="${esc(c.title)}">${esc(c.title)}</button>` +
+      `<button type="button" class="st-btn st-btn--icon conv-item__del" title="Delete" aria-label="Delete chat">${icon("trash", "st-icon st-icon--sm")}</button>`;
+    list.appendChild(el);
+  }
+}
+async function apiConversations() {
+  try {
+    const r = await fetch("api/conversations", {headers: headers()});
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return (await r.json()).conversations || [];
+  } catch (e) { return null; }
+}
+async function loadConversation(id) {
+  try {
+    const r = await fetch(`api/conversations/${id}`, {headers: headers()});
+    return r.ok ? await r.json() : null;
+  } catch (e) { return null; }
+}
+async function openConversation(id) {
+  if (busy) { toast("warn", "Still writing", "Stop the answer first."); return; }
+  if (id === activeId) return;
+  const conv = await loadConversation(id);
+  if (!conv) { toast("error", "Couldn't open that chat"); return; }
+  activeId = conv.id;
+  messages = conv.messages || [];
+  store.set("activeConversation", activeId);
+  renderChat();
+  renderSidebar();
+}
+async function deleteConversation(id) {
+  const entry = conversations.find((c) => c.id === id);
+  if (!entry) return;
+  const full = await loadConversation(id);          // cached so "Undo" can recreate it
+  const wasActive = id === activeId;
+  conversations = conversations.filter((c) => c.id !== id);
+  if (wasActive) { activeId = null; messages = []; store.set("activeConversation", null); renderChat(); }
+  renderSidebar();
+  try { await fetch(`api/conversations/${id}`, {method: "DELETE", headers: headers(true)}); } catch (e) { /* best effort */ }
+  toast("info", "Chat deleted", entry.title, 6000, {label: "Undo", run: async () => {
+    if (!full) return;
+    try {
+      await fetch("api/conversations", {method: "POST", headers: headers(true),
+        body: JSON.stringify({id: full.id, title: full.title, messages: full.messages})});
+    } catch (e) { /* best effort */ }
+    conversations = [entry, ...conversations.filter((c) => c.id !== id)];
+    renderSidebar();
+    if (wasActive) openConversation(full.id);
+  }});
+}
+function startRename(item) {
+  const id = item.dataset.id, c = conversations.find((x) => x.id === id);
+  if (!c) return;
+  const btn = item.querySelector(".conv-item__title");
+  const input = document.createElement("input");
+  input.className = "st-input conv-item__rename";
+  input.value = c.title;
+  btn.replaceWith(input);
+  input.focus();
+  input.select();
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); input.blur(); }
+    if (e.key === "Escape") { input.value = c.title; input.blur(); }
+  });
+  input.addEventListener("blur", async () => {
+    const title = input.value.trim() || c.title;
+    input.replaceWith(btn);
+    if (title === c.title) return;
+    btn.textContent = title;
+    btn.title = title;
+    c.title = title;
+    try {
+      const r = await fetch("api/conversations", {method: "POST", headers: headers(true), body: JSON.stringify({id, title})});
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    } catch (e) { toast("error", "Couldn't rename that chat"); }
+  }, {once: true});
+}
+$("conv-list").addEventListener("click", (e) => {
+  const item = e.target.closest(".conv-item");
+  if (!item) return;
+  if (e.target.closest(".conv-item__del")) { deleteConversation(item.dataset.id); return; }
+  if (e.target.closest(".conv-item__title")) openConversation(item.dataset.id);
+});
+$("conv-list").addEventListener("dblclick", (e) => {
+  const title = e.target.closest(".conv-item__title");
+  if (title) startRename(title.closest(".conv-item"));
+});
+
+async function initConversations() {
+  // a one-time move from the old (pre-sidebar) single chat kept in this browser's storage
+  const legacy = store.get("chat", null);
+  if (legacy && legacy.length) {
+    messages = legacy;
+    await saveChat();
+    store.set("chat", null);
+    renderChat();
+  }
+  const list = await apiConversations();
+  conversationsOk = list !== null;
+  conversations = list || [];
+  if (!legacy || !legacy.length) {
+    const wanted = store.get("activeConversation", null);
+    const open = conversations.find((c) => c.id === wanted) || conversations[0];
+    if (open) {
+      const conv = await loadConversation(open.id);
+      if (conv) { activeId = conv.id; messages = conv.messages || []; renderChat(); }
+    }
+  }
+  renderSidebar();
+}
+
 $("export-btn").onclick = () => {
   if (!messages.length) { toast("info", "Nothing to save yet"); return; }
   const tools = (m) => (m.tools || []).filter((t) => t.result != null).map((t) =>
@@ -1101,7 +1255,9 @@ setBusy(false);
 renderChat();
 const startQuestion = new URLSearchParams(location.search).get("q");   // /?q=... starts a chat (a shortcut)
 if (startQuestion) history.replaceState(null, "", location.pathname + location.hash);
-loadHealth().then(loadMcp).then(() => { if (startQuestion) { $("input").value = startQuestion; send(); } });
+Promise.all([loadHealth().then(loadMcp), initConversations()]).then(() => {
+  if (startQuestion) { $("input").value = startQuestion; send(); }
+});
 showTab(location.hash.slice(1) || "chat");
 poll();
 
