@@ -18,36 +18,43 @@ const ease = (cur, target, k, dt) => cur + (target - cur) * (1 - Math.exp(-k * d
 
 const PARTS = {
   gpu: "Graphics card", cpu: "Processor", ram: "Memory", ssd: "Storage",
-  psu: "Power supply", case: "Case", board: "Mainboard",
+  psu: "Power supply", case: "Case", board: "Mainboard", ctx: "Context",
 };
 
 export function createPcViz(canvas) {
   const renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: true, powerPreference: "low-power"});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));   // MSAA on a 4K buffer costs more than it shows
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 300);
 
   // ---------------------------------------------------------------- theme colours
   const COOL = new THREE.Color(), WARM = new THREE.Color(), HOT = new THREE.Color();
-  const ACCENT = new THREE.Color(), ACCENT2 = new THREE.Color(), INK = new THREE.Color();
-  const tmp = new THREE.Color();
+  const ACCENT = new THREE.Color(), ACCENT2 = new THREE.Color();
+  const hCool = {h: 0, s: 0, l: 0}, hWarm = {h: 0, s: 0, l: 0}, hHot = {h: 0, s: 0, l: 0};
   function readTheme() {
     COOL.set(css("--st-heat-cool", "#00e5ff"));
     WARM.set(css("--st-heat-warm", "#ffb020"));
     HOT.set(css("--st-heat-hot", "#ff3b5c"));
     ACCENT.set(css("--st-accent", "#00e5ff"));
     ACCENT2.set(css("--st-accent-2", "#ff2d9b"));
-    INK.set(css("--st-ink-muted", "#78889c"));
+    COOL.getHSL(hCool); WARM.getHSL(hWarm); HOT.getHSL(hHot);
+    // Cyan and amber sit on opposite sides of the wheel, so mixing them as RGB passes through grey and every
+    // mid-range value came out washed out. Walking the hue instead keeps the ramp saturated the whole way, and
+    // these offsets make it walk the short way round: cyan -> green -> amber -> red.
+    if (hCool.h < hWarm.h) hCool.h += 1;
+    if (hHot.h > hWarm.h) hHot.h -= 1;
   }
   readTheme();
   // the page can flip light/dark under us; the scene follows without reloading
   const themeWatch = new MutationObserver(() => { readTheme(); applyStaticColors(); });
   themeWatch.observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
 
-  /** cool -> warm -> hot, by load/temperature fraction */
+  /** cool -> warm -> hot, by load/temperature fraction, interpolated around the hue wheel */
   function heat(t, out) {
     t = clamp01(t);
-    return t < 0.5 ? out.copy(COOL).lerp(WARM, t * 2) : out.copy(WARM).lerp(HOT, (t - 0.5) * 2);
+    const a = t < 0.5 ? hCool : hWarm, b = t < 0.5 ? hWarm : hHot, u = t < 0.5 ? t * 2 : (t - 0.5) * 2;
+    const h = a.h + (b.h - a.h) * u;
+    return out.setHSL(h - Math.floor(h), a.s + (b.s - a.s) * u, a.l + (b.l - a.l) * u);
   }
 
   // ---------------------------------------------------------------- materials
@@ -84,18 +91,18 @@ export function createPcViz(canvas) {
   // The hardware stays dark and matte on purpose: all the colour in this scene comes from the emissive parts (fans,
   // strips, LEDs, edges). A saturated key AND a saturated rim would mix back to white and wash the metal out, so the
   // key is near-neutral and only the rim carries the second neon.
-  scene.add(new THREE.AmbientLight(0xffffff, 0.22));
-  const hemi = new THREE.HemisphereLight(0x8fc8e8, 0x05070a, 0.45);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.12));
+  const hemi = new THREE.HemisphereLight(0x8fc8e8, 0x05070a, 0.26);
   scene.add(hemi);
   // point lights are physical since r155: intensity is candela, so it falls off with distance squared (~26 units here)
-  const keyLight = new THREE.PointLight(new THREE.Color("#cfe9f5"), 230, 120, 2);
+  const keyLight = new THREE.PointLight(new THREE.Color("#cfe9f5"), 150, 120, 2);
   keyLight.position.set(16, 13, 22);
   scene.add(keyLight);
   const rimLight = new THREE.PointLight(ACCENT2.clone(), 170, 110, 2);
   rimLight.position.set(-19, 5, -13);
   scene.add(rimLight);
   // a soft fill from the open side, so the inside of the case is readable instead of a black hole
-  const fillLight = new THREE.DirectionalLight(0xbcd8ea, 0.35);
+  const fillLight = new THREE.DirectionalLight(0xbcd8ea, 0.22);
   fillLight.position.set(-4, 7, 16);
   scene.add(fillLight);
 
@@ -138,31 +145,41 @@ export function createPcViz(canvas) {
   function edgesOf(geo, mat) { return new THREE.LineSegments(keep(new THREE.EdgesGeometry(geo)), mat); }
   const pickable = [];
 
+  // One draw call for every copy of a repeated part (fan blades, cooler fins, rails). The scene is drawn next to a
+  // model that wants the same GPU, so the cheapest frame wins: this turns ~90 little meshes into ~12.
+  const place = new THREE.Object3D();
+  function instanced(geo, mat, at, part) {
+    const m = new THREE.InstancedMesh(geo, mat, at.length);
+    for (let i = 0; i < at.length; i++) {
+      const p = at[i];
+      place.position.set(p[0], p[1], p[2]);
+      place.rotation.set(p[3] || 0, p[4] || 0, p[5] || 0);
+      place.updateMatrix();
+      m.setMatrixAt(i, place.matrix);
+    }
+    m.instanceMatrix.needsUpdate = true;
+    if (part) { m.userData.part = part; pickable.push(m); }
+    return m;
+  }
+
   /** a fan built in the XY plane, facing +Z; userData.spin is the part that rotates */
   function makeFan(radius, blades) {
     const g = new THREE.Group();
     // a square shroud with a round cut-out is what makes it read as a fan rather than a flower
-    const bar = radius * 0.34;
-    for (let i = 0; i < 4; i++) {
-      const horizontal = i < 2;
-      const f = new THREE.Mesh(box(horizontal ? radius * 2.3 : bar, horizontal ? bar : radius * 2.3, 0.5), matDark);
-      f.position.set(horizontal ? 0 : (i === 2 ? -1 : 1) * (radius + bar * 0.4),
-                     horizontal ? (i === 0 ? 1 : -1) * (radius + bar * 0.4) : 0, 0);
-      g.add(f);
-    }
+    const bar = radius * 0.34, off = radius + bar * 0.4, side = Math.PI / 2;
+    g.add(instanced(box(radius * 2.3, bar, 0.5), matDark,
+      [[0, off, 0], [0, -off, 0], [-off, 0, 0, 0, 0, side], [off, 0, 0, 0, 0, side]]));
     const hub = new THREE.Mesh(keep(new THREE.CylinderGeometry(radius * 0.3, radius * 0.3, 0.45, 18)), matMetal);
     hub.rotation.x = Math.PI / 2;
     g.add(hub);
-    const spin = new THREE.Group();
-    const bladeGeo = box(radius * 0.8, radius * 0.34, 0.07);
+    // every blade is one instance of the same box, pitched so it catches the light as it turns; the whole
+    // InstancedMesh is what spins, so the rotation costs one matrix, not one per blade
+    const at = [];
     for (let i = 0; i < blades; i++) {
       const a = (i / blades) * Math.PI * 2;
-      const b = new THREE.Mesh(bladeGeo, matBlade);
-      b.position.set(Math.cos(a) * radius * 0.56, Math.sin(a) * radius * 0.56, 0);
-      b.rotation.z = a + 0.55;
-      b.rotation.y = 0.42;                       // pitched, so the blades catch the light as they turn
-      spin.add(b);
+      at.push([Math.cos(a) * radius * 0.56, Math.sin(a) * radius * 0.56, 0, 0, 0.42, a + 0.55]);
     }
+    const spin = instanced(box(radius * 0.8, radius * 0.34, 0.07), matBlade, at);
     g.add(spin);
     // the lit rim: this is the part that brightens with load
     const ring = new THREE.Mesh(keep(new THREE.RingGeometry(radius * 0.95, radius * 1.06, 40)),
@@ -185,10 +202,8 @@ export function createPcViz(canvas) {
   panel(box(W * 2, 0.5, D * 2), 0, -H, 0);                    // floor
   panel(box(W * 2, 0.5, D * 2), 0, H, 0);                     // roof
   panel(box(W * 2, H * 2, 0.4), 0, 0, -D);                    // back wall
-  for (const sx of [-1, 1]) {                                  // side rails, so the frame still has a body
-    shell.add(mesh(box(0.35, H * 2, 0.35), matShell, sx * W, 0, D - 0.2, "case"));
-    shell.add(mesh(box(0.35, H * 2, 0.35), matShell, sx * W, 0, -D + 0.2, "case"));
-  }
+  shell.add(instanced(box(0.35, H * 2, 0.35), matShell,        // side rails, so the frame still has a body
+    [[-W, 0, D - 0.2], [-W, 0, -D + 0.2], [W, 0, D - 0.2], [W, 0, -D + 0.2]], "case"));
   // the open side is glass: barely there, but it catches the lights
   const glass = mesh(keep(new THREE.PlaneGeometry(W * 2, H * 2)), matPanelGlass, 0, 0, D, "case");
   shell.add(glass);
@@ -227,16 +242,11 @@ export function createPcViz(canvas) {
   shell.add(cpu);
   const cpuBase = mesh(box(4.2, 1.1, 3.6), matCpu, 0, -2.6, 0, "cpu");    // the block over the socket
   cpu.add(cpuBase);
-  const finGeo = box(4.4, 0.16, 3.3);
-  for (let i = 0; i < 10; i++) {
-    const fin = mesh(finGeo, matMetal, 0, -1.5 + i * 0.52, 0, "cpu");
-    cpu.add(fin);
-  }
-  for (const x of [-1.35, -0.45, 0.45, 1.35]) {                            // heat pipes through the fin stack
-    const pipe = new THREE.Mesh(keep(new THREE.CylinderGeometry(0.16, 0.16, 6.6, 10)), matMetal);
-    pipe.position.set(x, 0.2, -0.9);
-    cpu.add(pipe);
-  }
+  const fins = [];
+  for (let i = 0; i < 10; i++) fins.push([0, -1.5 + i * 0.52, 0]);
+  cpu.add(instanced(box(4.4, 0.16, 3.3), matMetal, fins, "cpu"));
+  cpu.add(instanced(keep(new THREE.CylinderGeometry(0.16, 0.16, 6.6, 10)), matMetal,   // heat pipes through the fins
+    [[-1.35, 0.2, -0.9], [-0.45, 0.2, -0.9], [0.45, 0.2, -0.9], [1.35, 0.2, -0.9]], "cpu"));
   const cpuTopMat = keep(new THREE.MeshBasicMaterial({color: ACCENT.clone(), transparent: true, opacity: 0.8}));
   const cpuTop = mesh(box(4.5, 0.3, 3.5), matCpu, 0, 4.05, 0, "cpu");      // top cap...
   cpu.add(cpuTop);
@@ -286,10 +296,19 @@ export function createPcViz(canvas) {
   vram.position.set(0, -1.1, 2.85);
   vram.scale.x = 0.02;
   gpu.add(vram);
-  const vramTrack = new THREE.Mesh(box(12.4, 0.28, 0.1),
-    keep(new THREE.MeshBasicMaterial({color: "#1b2430", transparent: true, opacity: 0.85})));
+  const matTrack = keep(new THREE.MeshBasicMaterial({color: "#1b2430", transparent: true, opacity: 0.85}));
+  const vramTrack = new THREE.Mesh(box(12.4, 0.28, 0.1), matTrack);
   vramTrack.position.set(0, -1.1, 2.82);
   gpu.add(vramTrack);
+  // second strip along the top edge: how much of the VRAM the engine's expert cache holds
+  const expertMat = keep(new THREE.MeshBasicMaterial({color: ACCENT.clone(), transparent: true, opacity: 0.9}));
+  const expertTrack = new THREE.Mesh(box(12.4, 0.22, 0.1), matTrack);
+  expertTrack.position.set(0, 1.15, 2.82);
+  gpu.add(expertTrack);
+  const expertBar = new THREE.Mesh(box(12.4, 0.22, 0.14), expertMat);
+  expertBar.position.set(0, 1.15, 2.85);
+  expertBar.scale.x = 0.02;
+  gpu.add(expertBar);
 
   // ---------------------------------------------------------------- SSD + PSU
   const ssd = mesh(box(3.2, 0.34, 1.1), matMetal, 3.4, 0.2, -D + 1.1, "ssd");
@@ -309,6 +328,26 @@ export function createPcViz(canvas) {
   psuFan.position.set(0, 1.68, 0);
   psuFan.rotation.x = -Math.PI / 2;
   psu.add(psuFan);
+  // how much of the card's power limit it is drawing
+  const psuBarMat = keep(new THREE.MeshBasicMaterial({color: ACCENT.clone(), transparent: true, opacity: 0.9}));
+  const psuTrack = new THREE.Mesh(box(7, 0.3, 0.1), matTrack);
+  psuTrack.position.set(0, -1, 2.62);
+  psu.add(psuTrack);
+  const psuBar = new THREE.Mesh(box(7, 0.3, 0.14), psuBarMat);
+  psuBar.position.set(0, -1, 2.65);
+  psuBar.scale.x = 0.02;
+  psu.add(psuBar);
+
+  // ---------------------------------------------------------------- context column
+  // How full the model's context window is, on the front-left rail where nothing else competes for attention.
+  const CTX_H = 13;
+  const ctxTrack = mesh(box(0.3, CTX_H, 0.3), matDark, -W + 0.55, 0, D - 0.25, "ctx");
+  shell.add(ctxTrack);
+  const ctxBarMat = keep(new THREE.MeshBasicMaterial({color: ACCENT.clone(), transparent: true, opacity: 0.8}));
+  const ctxBar = new THREE.Mesh(box(0.36, CTX_H, 0.36), ctxBarMat);
+  ctxBar.position.set(-W + 0.55, -CTX_H / 2, D - 0.25);
+  ctxBar.scale.y = 0.01;
+  shell.add(ctxBar);
 
   // rear exhaust fans
   const caseFans = [makeFan(1.75, 7), makeFan(1.75, 7)];
@@ -335,19 +374,31 @@ export function createPcViz(canvas) {
   // tokens: what the card hands back while the model writes
   const tokens = makeStream(70, ACCENT, 0.26);
   const tokenMat = tokens.mat;
+  // the prompt being read, flowing in from outside the case - the mirror of the token stream
+  const prompt = makeStream(70, ACCENT2, 0.24);
+  const promptMat = prompt.mat;
   const A = new THREE.Vector3(1.6, 4.0, -D + 2.2);     // RAM
   const B = new THREE.Vector3(-3.0, 1.6, -D + 3.0);    // mid-board
   const C = new THREE.Vector3(-1.2, -0.6, -D + 3.2);   // the card
+  const P1 = new THREE.Vector3(5.5, 7.5, D + 13);      // in front of the case, where a prompt arrives
+  const P2 = new THREE.Vector3(2.0, 3.0, D + 3);
 
   // ---------------------------------------------------------------- state
-  const live = {gpu: 0, temp: 0, vram: 0, cpu: 0, ram: 0, disk: 0, pcie: 0, power: 0, tok: 0, busy: 0};
+  // Every card under the stage has a channel up here, so the picture is the whole Monitor and not a decoration:
+  //   gpu load -> fan speed + body heat      gpu temp -> case fan speed       vram -> strip on the card
+  //   expert cache -> second strip           power -> bar on the PSU          pcie -> magenta stream in
+  //   cpu load -> cooler cap + fan           ram -> lit sticks                disk read -> SSD led
+  //   decode tok/s -> token stream out       prefill tok/s -> prompt stream in   context -> column on the rail
+  const live = {gpu: 0, temp: 0, vram: 0, cpu: 0, ram: 0, disk: 0, pcie: 0, power: 0, tok: 0, busy: 0,
+                ctx: 0, experts: 0, prefill: 0, reading: 0};
   const target = {...live};
+  const KEYS = Object.keys(live);                       // fixed order beats for..in on the hot path
   let state = "idle";
   const data = {};                                      // last raw values, for the hover readout
 
   function update(m) {
-    const hw = m.hardware || {}, l = m.live || {}, eng = m.engine || {};
-    Object.assign(data, {hw, live: l, eng, st: m.hardware_static || {}});
+    const hw = m.hardware || {}, l = m.live || {}, eng = m.engine || {}, last = (m.requests || [])[0];
+    Object.assign(data, {hw, live: l, eng, st: m.hardware_static || {}, last});
     state = l.state || "idle";
     target.gpu = clamp01((hw.gpu_util || 0) / 100);
     target.temp = clamp01(((hw.gpu_temp || 0) - 30) / 55);          // 30 C idle .. 85 C hot
@@ -359,6 +410,16 @@ export function createPcViz(canvas) {
     target.power = hw.gpu_power_limit ? clamp01(hw.gpu_power / hw.gpu_power_limit) : clamp01((hw.gpu_power || 0) / 350);
     target.tok = clamp01((l.tok_s || 0) / 60);
     target.busy = state === "idle" ? 0 : 1;
+    // the running request's context, or the last one's once it is done - the same reading as the gauge below
+    const ctx = eng.max_context || 0;
+    const used = state !== "idle" ? (l.prompt_tokens || 0) + (l.generated || 0)
+               : last ? (last.prompt_tokens || 0) + (last.output_tokens || 0) : 0;
+    target.ctx = ctx ? clamp01(used / ctx) : 0;
+    target.experts = hw.gpu_mem_total ? clamp01(((eng.expert_cache_mib || 0) * 1048576) / hw.gpu_mem_total) : 0;
+    const pf = state !== "idle" ? l.prefill_tok_s_mean
+             : last && last.prompt_ms > 0 ? Math.max(0, last.prompt_tokens - (last.reused || 0)) / (last.prompt_ms / 1000) : 0;
+    target.prefill = clamp01((pf || 0) / 300);
+    target.reading = state === "reading" ? 1 : 0;
   }
 
   /** what the hover readout shows for a part, from the newest telemetry */
@@ -368,7 +429,14 @@ export function createPcViz(canvas) {
     const gb = (b) => (b == null ? "–" : (b / 1073741824).toFixed(1));
     switch (key) {
       case "gpu": return [st.gpu_name || "Graphics card",
-        `${n(hw.gpu_util)}% · ${n(hw.gpu_temp)}°C · ${n(hw.gpu_power)} W · ${gb(hw.gpu_mem_used)}/${gb(hw.gpu_mem_total)} GB`];
+        `${n(hw.gpu_util)}% · ${n(hw.gpu_temp)}°C · ${n(hw.gpu_power)} W · ${gb(hw.gpu_mem_used)}/${gb(hw.gpu_mem_total)} GB` +
+        (eng.expert_slots ? ` · ${eng.expert_slots.toLocaleString()} experts cached` : "")];
+      case "ctx": {
+        const l = data.live || {}, last = data.last;
+        const used = (l.state && l.state !== "idle") ? (l.prompt_tokens || 0) + (l.generated || 0)
+                   : last ? (last.prompt_tokens || 0) + (last.output_tokens || 0) : 0;
+        return ["Context", eng.max_context ? `${used.toLocaleString()} / ${eng.max_context.toLocaleString()} tokens` : "–"];
+      }
       case "cpu": return ["Processor", `${n(hw.cpu)}%${st.threads ? ` · ${st.threads} threads` : ""}`];
       case "ram": return ["Memory", `${gb(hw.ram_used)} / ${gb(hw.ram_total)} GB`];
       case "ssd": return ["Storage", `read ${n(hw.disk_read_mb, 1)} MB/s · write ${n(hw.disk_write_mb, 1)} MB/s`];
@@ -379,7 +447,7 @@ export function createPcViz(canvas) {
   }
 
   // ---------------------------------------------------------------- camera, drag to rotate
-  const AZ0 = 0.46, EL0 = 0.30, RADIUS = 36;
+  const AZ0 = 0.46, EL0 = 0.28, RADIUS = 41;
   let az = AZ0, el = EL0, azTarget = az, elTarget = el, idleSpin = true, lastDrag = 0;
   let idleBaseAz = AZ0, idleBaseEl = EL0, driftT = 0;
   function placeCamera() {
@@ -435,7 +503,7 @@ export function createPcViz(canvas) {
     prev = now;
     clock += dt;
 
-    for (const k in target) live[k] = ease(live[k], target[k], 3.2, dt);
+    for (let i = 0; i < KEYS.length; i++) { const k = KEYS[i]; live[k] = ease(live[k], target[k], 3.2, dt); }
 
     // camera: a slow sway rather than a full orbit, so the open side keeps facing the viewer; a drag takes over, and
     // the sway resumes around wherever it was left
@@ -454,10 +522,16 @@ export function createPcViz(canvas) {
     spinB += dt * (0.5 + live.cpu * 10);
     spinC += dt * (0.4 + live.temp * 9);
     spinD += dt * (0.3 + live.power * 7);
-    gpuFans.forEach((f) => { f.userData.spin.rotation.z = spinA; f.userData.ring.material.opacity = 0.18 + live.gpu * 0.5; });
+    for (let i = 0; i < gpuFans.length; i++) {
+      gpuFans[i].userData.spin.rotation.z = spinA;
+      gpuFans[i].userData.ring.material.opacity = 0.18 + live.gpu * 0.5;
+    }
     cpuFan.userData.spin.rotation.z = spinB;
     cpuFan.userData.ring.material.opacity = 0.15 + live.cpu * 0.45;
-    caseFans.forEach((f, i) => { f.userData.spin.rotation.z = spinC * (i ? 0.92 : 1); f.userData.ring.material.opacity = 0.12 + live.temp * 0.4; });
+    for (let i = 0; i < caseFans.length; i++) {
+      caseFans[i].userData.spin.rotation.z = spinC * (i ? 0.92 : 1);
+      caseFans[i].userData.ring.material.opacity = 0.12 + live.temp * 0.4;
+    }
     psuFan.userData.spin.rotation.z = spinD;
     psuFan.userData.ring.material.opacity = 0.1 + live.power * 0.35;
 
@@ -465,10 +539,10 @@ export function createPcViz(canvas) {
     const gpuHeat = Math.max(live.gpu, live.temp);
     heat(gpuHeat, c1);
     matGpu.emissive.copy(c1);
-    matGpu.emissiveIntensity = 0.02 + gpuHeat * gpuHeat * 0.75;
+    matGpu.emissiveIntensity = 0.02 + gpuHeat * gpuHeat * 0.42;
     heat(live.cpu, c2);
     matCpu.emissive.copy(c2);
-    matCpu.emissiveIntensity = 0.02 + live.cpu * live.cpu * 0.5;
+    matCpu.emissiveIntensity = 0.02 + live.cpu * live.cpu * 0.32;
     // the cooler's top cap stays lit even at idle, so the CPU is as findable as the card and the memory
     cpuTopMat.color.copy(c2);
     cpuTopMat.opacity = 0.45 + live.cpu * 0.5;
@@ -478,13 +552,26 @@ export function createPcViz(canvas) {
     vram.position.x = -6.2 * (1 - live.vram);
     vramMat.color.copy(heat(live.vram * 0.9, c1));
     const ramFill = live.ram;
-    ramLights.forEach((lit, i) => {
-      const per = clamp01((ramFill - i * 0.25) * 4);        // the four sticks fill left to right
+    heat(ramFill * 0.85, c2);
+    for (let i = 0; i < ramLights.length; i++) {
+      const lit = ramLights[i], per = clamp01((ramFill - i * 0.25) * 4);   // the four sticks fill left to right
       lit.scale.y = Math.max(0.02, per);
       lit.position.y = -2.3 * (1 - per);
-      lit.material.color.copy(heat(ramFill * 0.85, c2));
+      lit.material.color.copy(c2);
       lit.material.opacity = 0.35 + per * 0.6;
-    });
+    }
+    // expert cache: the share of the card's memory the engine keeps experts in
+    expertBar.scale.x = Math.max(0.02, live.experts);
+    expertBar.position.x = -6.2 * (1 - live.experts);
+    // the PSU's draw against the card's power limit
+    psuBar.scale.x = Math.max(0.02, live.power);
+    psuBar.position.x = -3.5 * (1 - live.power);
+    psuBarMat.color.copy(heat(live.power * 0.9, c1));
+    // the context window filling up
+    ctxBar.scale.y = Math.max(0.01, live.ctx);
+    ctxBar.position.y = -CTX_H / 2 + (CTX_H / 2) * live.ctx;
+    ctxBarMat.color.copy(heat(live.ctx * 0.85, c2));
+    ctxBarMat.opacity = 0.5 + live.ctx * 0.45;
 
     // SSD: a read LED that flickers faster the more the engine streams from disk
     const blink = live.disk > 0.002 ? 0.35 + 0.65 * Math.abs(Math.sin(clock * (4 + live.disk * 26))) : 0.12;
@@ -503,6 +590,7 @@ export function createPcViz(canvas) {
     // streams
     stream(pcie, dt, 0.12 + live.pcie * 1.5, live.pcie > 0.004 ? 0.25 + live.pcie * 0.75 : 0, A, B, C);
     stream(tokens, dt, 0.25 + live.tok * 1.8, state === "generating" ? 0.35 + live.tok * 0.6 : 0, C, null, null);
+    stream(prompt, dt, 0.25 + live.prefill * 2.4, live.reading > 0.02 ? 0.25 + live.prefill * 0.7 : 0, P1, P2, C);
 
     renderer.render(scene, camera);
   }
