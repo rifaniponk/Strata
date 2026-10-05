@@ -130,7 +130,7 @@ main { flex: 1; min-height: 0; display: flex; }
 /* ---------------------------------------------------------------- monitor: the live 3D PC */
 .pc-card { display: flex; flex-direction: column; gap: var(--st-s-3); }
 .pc-hint { font-size: var(--st-fs-micro); letter-spacing: .06em; text-transform: uppercase; }
-.pc-stage { position: relative; height: clamp(300px, 42vh, 460px); border-radius: var(--st-r-md); overflow: hidden;
+.pc-stage { position: relative; height: clamp(380px, 62vh, 720px); border-radius: var(--st-r-md); overflow: hidden;
             background: radial-gradient(120% 90% at 50% 8%, color-mix(in srgb, var(--st-accent) 7%, transparent), transparent 62%),
                         linear-gradient(180deg, var(--st-bg-2), color-mix(in srgb, var(--st-bg-2) 70%, var(--st-surface)));
             border: 1px solid var(--st-line-soft); }
