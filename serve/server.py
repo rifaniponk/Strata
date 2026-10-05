@@ -6400,12 +6400,18 @@ def make_handler(svc: Service):
                     self._json(404, {"error": {"message": "not found"}})
                     return
                 body = f.read_bytes()
+                # Static assets answer in HTTP/1.1 with keep-alive. The rest of this server speaks HTTP/1.0 and ends a
+                # response by closing the socket, which browsers tolerate for small files but not for a large ES
+                # module: Chrome's module loader never settles when the connection drops under it, so the Monitor's
+                # three.js (≈400 KB per file) would hang forever. Content-Length is always known here, so 1.1 is safe.
+                self.protocol_version = "HTTP/1.1"
                 self.send_response(200)
                 self.send_header("Content-Type", types[ext])
                 self.send_header("Cache-Control", "no-cache")
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
+                self.close_connection = False
                 return
             if path == "/metrics/prometheus":
                 if self._authorized():
