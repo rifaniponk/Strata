@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ponkAI</title>
-<link rel="icon" href="web/favicon.svg" type="image/svg+xml">
+<!-- the ponkAI chip mark, inline so the page asks the server for nothing extra -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='1.6' stroke-linecap='round'%3E%3Crect x='5' y='5' width='14' height='14' rx='3.5'/%3E%3Crect x='9.25' y='9.25' width='5.5' height='5.5' rx='1.75' fill='%2300e5ff' stroke='none'/%3E%3Cpath d='M9.5 5V2.5M14.5 5V2.5M9.5 19v2.5M14.5 19v2.5M5 9.5H2.5M5 14.5H2.5M19 9.5h2.5M19 14.5h2.5'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="web/tokens.css">
 <link rel="stylesheet" href="web/components.css">
 <link rel="stylesheet" href="web/app.css">
@@ -109,6 +110,22 @@
   <!-- ============================ Monitor ============================ -->
   <section class="view view--monitor" id="view-monitor" role="tabpanel" aria-labelledby="tab-btn-monitor" hidden>
     <div class="monitor">
+      <div class="st-card pc-card">
+        <div class="req-head">
+          <span class="card-title">This PC, live</span>
+          <span class="muted small pc-hint">drag to rotate &middot; double-click to reset</span>
+        </div>
+        <div class="pc-stage">
+          <canvas id="pc-canvas" aria-label="A live 3D view of this PC: the parts move and change colour with their load"></canvas>
+          <div class="pc-readout" id="pc-readout" hidden><b id="pc-readout-name"></b><span id="pc-readout-val"></span></div>
+          <div class="pc-fallback" id="pc-fallback" hidden>
+            <p class="muted small" id="pc-fallback-text">The 3D view could not start.</p>
+            <button class="st-btn st-btn--secondary" id="pc-retry" type="button">Try again</button>
+          </div>
+        </div>
+        <div class="pc-legend" id="pc-legend"></div>
+      </div>
+
       <div class="st-card state-card">
         <div class="state-card__head">
           <span class="card-title">Model state</span>
