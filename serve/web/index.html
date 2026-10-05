@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,12 +9,8 @@
 <link rel="stylesheet" href="web/components.css">
 <link rel="stylesheet" href="web/app.css">
 <script>
-  // the theme before the first paint: the saved choice, else the system's
-  try {
-    const t = localStorage.getItem("strata.theme") ||
-      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    document.documentElement.dataset.theme = t;
-  } catch (e) {}
+  // the theme before the first paint: the saved choice, else the app's own dark
+  try { document.documentElement.dataset.theme = localStorage.getItem("strata.theme") || "dark"; } catch (e) {}
 </script>
 </head>
 <body>

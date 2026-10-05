@@ -54,7 +54,7 @@ async function copyText(text, btn) {
 }
 
 // ------------------------------------------------------------------ theme and tabs
-// the system's theme until the user picks one (only a click is saved)
+// dark is the app's own look; light is there for whoever wants it (only a click is saved)
 function setTheme(t, save) {
   document.documentElement.dataset.theme = t;
   if (save) try { localStorage.setItem("strata.theme", t); } catch (e) { /* ignore */ }
@@ -64,12 +64,7 @@ function setTheme(t, save) {
 const flipTheme = () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark", true);
 $("theme-btn").onclick = flipTheme;
 $("dark-toggle").onclick = flipTheme;
-setTheme(document.documentElement.dataset.theme || "light", false);
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-  let saved = null;
-  try { saved = localStorage.getItem("strata.theme"); } catch (err) { /* ignore */ }
-  if (!saved) setTheme(e.matches ? "dark" : "light", false);
-});
+setTheme(document.documentElement.dataset.theme || "dark", false);
 
 let tab = "chat";
 function showTab(name) {

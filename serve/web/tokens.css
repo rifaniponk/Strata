@@ -1,6 +1,6 @@
-/* ponkAI UI — tokens. Derived from the Gainsty design system.
-   Light is default; dark via <html data-theme="dark">.
-   Values marked (derived) are not in the Gainsty source and were added for the app. */
+/* ponkAI UI — tokens. "Neon workstation": dark first, near-black panels, cyan signal, a heat ramp for load.
+   Light is the alternate via <html data-theme="light">. Token NAMES are stable: every component and the API
+   monitor page style themselves from these, so a theme is only ever a change of values here. */
 
 /* Outfit (SIL Open Font License 1.1, serve/web/fonts/OFL.txt): one variable font, weights 100-900 */
 @font-face{font-family:"Outfit";src:url("../fonts/outfit-latin-wght.woff2") format("woff2-variations");font-weight:100 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
@@ -9,79 +9,106 @@
 :root{
   /* type */
   --st-font:"Outfit",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --st-font-mono:ui-monospace,"SF Mono","Cascadia Code",Consolas,"Liberation Mono",monospace; /* (derived) */
-  --st-fs-xs:12px;  --st-fs-sm:13px; --st-fs-md:14px; --st-fs-base:16px;
+  --st-font-mono:ui-monospace,"JetBrains Mono","SF Mono","Cascadia Code",Consolas,"Liberation Mono",monospace;
+  --st-fs-micro:11px; --st-fs-xs:12px;  --st-fs-sm:13px; --st-fs-md:14px; --st-fs-base:16px;
   --st-fs-lg:18px;  --st-fs-xl:24px; --st-fs-stat:32px; --st-fs-display:40px;
   --st-fw-regular:400; --st-fw-medium:500; --st-fw-bold:700; --st-fw-black:900;
   --st-lh-tight:1.1; --st-lh-body:1.55;
+  --st-track-wide:.14em;          /* micro labels: uppercase, widely tracked */
 
   /* spacing (4pt) */
   --st-s-1:4px; --st-s-2:8px; --st-s-3:12px; --st-s-4:16px; --st-s-5:20px;
   --st-s-6:24px; --st-s-8:32px; --st-s-10:40px; --st-s-12:48px; --st-s-16:64px;
 
   /* radius */
-  --st-r-sm:8px; --st-r-md:14px; --st-r-lg:20px; --st-r-xl:24px; --st-r-pill:9999px;
+  --st-r-sm:8px; --st-r-md:12px; --st-r-lg:16px; --st-r-xl:22px; --st-r-pill:9999px;
 
-  /* motion (derived) */
+  /* motion */
   --st-ease:cubic-bezier(.2,.7,.2,1); --st-dur:160ms;
 
-  /* color — light */
-  --st-bg:#f9fafb;
-  --st-surface:#ffffff;
-  --st-surface-2:#f7f7f7;
-  --st-line:#dee5ee;
-  --st-line-soft:#eeeeee;
-  --st-ink:#221e1f;
-  --st-ink-soft:#303030;
-  --st-ink-muted:#6f6f6f;        /* Gainsty #7a7a7a darkened slightly for 4.5:1 on white */
-  --st-icon:#2F384C;             /* Anron default */
+  /* color — dark (default) */
+  --st-bg:#0a0c0f;
+  --st-bg-2:#06080a;              /* wells: code blocks, insets, the 3D stage */
+  --st-surface:#11161c;
+  --st-surface-2:#171e26;
+  --st-surface-3:#1e2630;
+  --st-line:#222c38;
+  --st-line-soft:#19212a;
+  --st-ink:#e9eff6;
+  --st-ink-soft:#b6c3d2;
+  --st-ink-muted:#78889c;
+  --st-icon:#9eb0c5;
 
-  --st-accent:#10b981;
-  --st-accent-hover:#0c8a60;
-  --st-accent-ink:#ffffff;
-  --st-accent-tint:#ecfdf5;
-  --st-accent-text:#0c8a60;      /* accent used as text on light */
-  --st-focus:#405de6;
-
-  --st-info:#0f97ff;     --st-info-tint:#e8f4ff;    --st-info-text:#0668c2;
-  --st-warn:#e39b0b;     --st-warn-tint:#fff6e0;    --st-warn-text:#8a5a00;   /* (derived) */
-  --st-danger:#e0283f;   --st-danger-tint:#fdecee;  --st-danger-text:#b01a2e; /* (derived) */
-
-  --st-code-bg:#1b1f23;  --st-code-ink:#e6e9ec;  /* code blocks stay dark in both themes (derived) */
-
-  --st-sh-card:0 18px 7px rgba(0,0,0,.01),0 10px 6px rgba(0,0,0,.02),0 4px 4px rgba(0,0,0,.03),0 1px 2px rgba(0,0,0,.04);
-  --st-sh-bar:0 54px 21px rgba(0,0,0,.01),0 30px 18px rgba(0,0,0,.03),0 13px 13px rgba(0,0,0,.05),0 3px 7px rgba(0,0,0,.06);
-  --st-sh-pop:0 10px 40px rgba(15,23,42,.08),0 1px 3px rgba(15,23,42,.06);
-  color-scheme:light;
-}
-
-/* color — dark (all derived) */
-[data-theme="dark"]{
-  --st-bg:#0e1113;
-  --st-surface:#161a1d;
-  --st-surface-2:#1d2226;
-  --st-line:#2a3036;
-  --st-line-soft:#22272c;
-  --st-ink:#eef1f3;
-  --st-ink-soft:#c7cdd3;
-  --st-ink-muted:#8e979f;
-  --st-icon:#c7cdd3;
-
-  --st-accent:#34d399;
-  --st-accent-hover:#4ade80;
-  --st-accent-ink:#052e20;
-  --st-accent-tint:rgba(52,211,153,.12);
-  --st-accent-text:#4ade80;
-  --st-focus:#7b93ff;
+  --st-accent:#00e5ff;
+  --st-accent-hover:#5cf0ff;
+  --st-accent-ink:#031d24;        /* text on a filled accent */
+  --st-accent-tint:rgba(0,229,255,.10);
+  --st-accent-text:#48e9ff;
+  --st-accent-2:#ff2d9b;          /* secondary neon: PCIe traffic, highlights */
+  --st-accent-2-tint:rgba(255,45,155,.12);
+  --st-focus:#7c5cff;
 
   --st-info:#3aa9ff;     --st-info-tint:rgba(58,169,255,.12);  --st-info-text:#7cc4ff;
-  --st-warn:#f5b53d;     --st-warn-tint:rgba(245,181,61,.12);  --st-warn-text:#f8c96a;
-  --st-danger:#ff5a6e;   --st-danger-tint:rgba(255,90,110,.12);--st-danger-text:#ff8a98;
+  --st-warn:#ffb020;     --st-warn-tint:rgba(255,176,32,.12);  --st-warn-text:#ffc659;
+  --st-danger:#ff3b5c;   --st-danger-tint:rgba(255,59,92,.12); --st-danger-text:#ff7d93;
 
-  --st-code-bg:#0a0c0e;  --st-code-ink:#e6e9ec;
+  /* load heat ramp: cool/idle -> busy -> hot, mixed by percentage with color-mix() */
+  --st-heat-cool:#00e5ff;
+  --st-heat-warm:#ffb020;
+  --st-heat-hot:#ff3b5c;
 
-  --st-sh-card:0 1px 2px rgba(0,0,0,.4);
-  --st-sh-bar:0 12px 32px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.35);
-  --st-sh-pop:0 16px 48px rgba(0,0,0,.55),0 1px 3px rgba(0,0,0,.4);
+  /* glow — the signature of this theme */
+  --st-glow:0 0 20px rgba(0,229,255,.18);
+  --st-glow-strong:0 0 0 1px rgba(0,229,255,.30),0 0 28px rgba(0,229,255,.25);
+  --st-grid:rgba(120,160,190,.055);   /* faint technical grid on the page background */
+
+  --st-code-bg:#06080a;  --st-code-ink:#d6e6ee;
+
+  --st-sh-card:inset 0 1px 0 rgba(255,255,255,.035),0 10px 28px rgba(0,0,0,.45);
+  --st-sh-bar:inset 0 1px 0 rgba(255,255,255,.04),0 18px 44px rgba(0,0,0,.55);
+  --st-sh-pop:0 24px 60px rgba(0,0,0,.65),0 2px 8px rgba(0,0,0,.45);
   color-scheme:dark;
+}
+
+/* color — light (the alternate) */
+[data-theme="light"]{
+  --st-bg:#f3f6f9;
+  --st-bg-2:#e9eef4;
+  --st-surface:#ffffff;
+  --st-surface-2:#f1f5f9;
+  --st-surface-3:#e6edf4;
+  --st-line:#d8e2ec;
+  --st-line-soft:#e9eff5;
+  --st-ink:#0d1620;
+  --st-ink-soft:#2d3b4a;
+  --st-ink-muted:#5f7182;
+  --st-icon:#415263;
+
+  --st-accent:#0096b0;
+  --st-accent-hover:#007e95;
+  --st-accent-ink:#ffffff;
+  --st-accent-tint:rgba(0,150,176,.10);
+  --st-accent-text:#00748a;
+  --st-accent-2:#d61b7f;
+  --st-accent-2-tint:rgba(214,27,127,.10);
+  --st-focus:#5b43d6;
+
+  --st-info:#0f80e0;     --st-info-tint:#e6f2fd;    --st-info-text:#0a5fa8;
+  --st-warn:#c47f06;     --st-warn-tint:#fdf3e0;    --st-warn-text:#8a5a00;
+  --st-danger:#d81e3d;   --st-danger-tint:#fdeaee;  --st-danger-text:#a81530;
+
+  --st-heat-cool:#0096b0;
+  --st-heat-warm:#c47f06;
+  --st-heat-hot:#d81e3d;
+
+  --st-glow:0 0 18px rgba(0,150,176,.14);
+  --st-glow-strong:0 0 0 1px rgba(0,150,176,.28),0 0 22px rgba(0,150,176,.18);
+  --st-grid:rgba(40,80,110,.05);
+
+  --st-code-bg:#0f1720;  --st-code-ink:#e3edf4;
+
+  --st-sh-card:0 1px 2px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.06);
+  --st-sh-bar:0 10px 30px rgba(15,23,42,.10),0 2px 6px rgba(15,23,42,.06);
+  --st-sh-pop:0 24px 60px rgba(15,23,42,.16),0 2px 8px rgba(15,23,42,.08);
+  color-scheme:light;
 }
