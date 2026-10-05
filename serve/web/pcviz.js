@@ -219,22 +219,34 @@ export function createPcViz(canvas) {
   const traces = new THREE.LineSegments(traceGeo, matTrace);
   board.add(traces);
 
-  // ---------------------------------------------------------------- CPU + cooler
+  // ---------------------------------------------------------------- CPU + tower cooler
+  // A plain block read as "some dark panel" next to the brighter parts, so the cooler is built with the silhouette
+  // people actually recognise: a finned tower on heat pipes, with a lit top cap that glows with the CPU's load.
   const cpu = new THREE.Group();
-  cpu.position.set(-4.6, 4.2, -D + 2.4);
+  cpu.position.set(-4.8, 3.4, -D + 2.4);
   shell.add(cpu);
-  const cpuBlock = mesh(box(4, 4, 3.4), matCpu, 0, 0, 0, "cpu");
-  cpu.add(cpuBlock);
-  cpu.add(edgesOf(box(4, 4, 3.4), matEdge));
-  const cpuFan = makeFan(1.7, 7);
-  cpuFan.position.z = 1.85;
-  cpu.add(cpuFan);
-  // heat pipes
-  for (const x of [-1.1, 0, 1.1]) {
-    const pipe = new THREE.Mesh(keep(new THREE.CylinderGeometry(0.17, 0.17, 3.6, 10)), matMetal);
-    pipe.position.set(x, 1.9, -0.6);
+  const cpuBase = mesh(box(4.2, 1.1, 3.6), matCpu, 0, -2.6, 0, "cpu");    // the block over the socket
+  cpu.add(cpuBase);
+  const finGeo = box(4.4, 0.16, 3.3);
+  for (let i = 0; i < 10; i++) {
+    const fin = mesh(finGeo, matMetal, 0, -1.5 + i * 0.52, 0, "cpu");
+    cpu.add(fin);
+  }
+  for (const x of [-1.35, -0.45, 0.45, 1.35]) {                            // heat pipes through the fin stack
+    const pipe = new THREE.Mesh(keep(new THREE.CylinderGeometry(0.16, 0.16, 6.6, 10)), matMetal);
+    pipe.position.set(x, 0.2, -0.9);
     cpu.add(pipe);
   }
+  const cpuTopMat = keep(new THREE.MeshBasicMaterial({color: ACCENT.clone(), transparent: true, opacity: 0.8}));
+  const cpuTop = mesh(box(4.5, 0.3, 3.5), matCpu, 0, 4.05, 0, "cpu");      // top cap...
+  cpu.add(cpuTop);
+  const cpuGlow = new THREE.Mesh(box(3.6, 0.1, 2.7), cpuTopMat);           // ...with a lit plate on it
+  cpuGlow.position.set(0, 4.26, 0);
+  cpu.add(cpuGlow);
+  cpu.add(edgesOf(box(4.5, 7.3, 3.6), matEdge));
+  const cpuFan = makeFan(1.7, 7);
+  cpuFan.position.set(0, 0.4, 1.95);
+  cpu.add(cpuFan);
 
   // ---------------------------------------------------------------- RAM
   const ramGroup = new THREE.Group();
@@ -457,6 +469,9 @@ export function createPcViz(canvas) {
     heat(live.cpu, c2);
     matCpu.emissive.copy(c2);
     matCpu.emissiveIntensity = 0.02 + live.cpu * live.cpu * 0.5;
+    // the cooler's top cap stays lit even at idle, so the CPU is as findable as the card and the memory
+    cpuTopMat.color.copy(c2);
+    cpuTopMat.opacity = 0.45 + live.cpu * 0.5;
 
     // VRAM strip and RAM sticks fill, and take a warning colour as they run out
     vram.scale.x = Math.max(0.02, live.vram);
