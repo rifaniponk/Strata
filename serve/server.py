@@ -72,6 +72,7 @@ from serve import owner_guard  # noqa: E402
 from serve import launch_identity  # noqa: E402
 from serve import logit_bias as bias_api  # noqa: E402
 from serve import lifeline  # noqa: E402
+from serve.conversations import ConversationStore  # noqa: E402
 from serve.structured import StructuredOutputError, prepare_format, validated_json  # noqa: E402
 from serve import responses as responses_api  # noqa: E402
 from serve.responses import ResponsesError, error_body as responses_error_body  # noqa: E402
@@ -3369,6 +3370,7 @@ class Service:
         self.conv_log = ConvCacheLog()                  # #596: the parked conversations, from the engine's log
         self.config_path = None                         # #564: the run config the web page's Settings view edits
         self.config_lock = threading.Lock()
+        self.conversations: ConversationStore | None = None   # the web app's chat history; None without a run config
         # #321: browser pages of these origins may call /v1/* (CORS; "*" = any page - only with an api_key that
         # matters); empty = no CORS headers at all, as before
         self.cors_origins: list[str] = []
@@ -6058,6 +6060,15 @@ def make_handler(svc: Service):
                 if self._authorized():
                     self._json(200, svc.mcp.status() if svc.mcp else {"servers": [], "tools": 0})
                 return
+            if path == "/api/conversations":
+                # the sidebar's list: summaries only (id, title, timestamps), never the messages
+                if self._authorized():
+                    self._json(200, {"conversations": svc.conversations.list() if svc.conversations else []})
+                return
+            if path.startswith("/api/conversations/"):
+                if self._authorized():
+                    self._conversation_get(path[len("/api/conversations/"):])
+                return
             if path == "" or (path == "/api-monitor" and svc.api_monitor):
                 body = (ROOT / "serve" / "web" / ("monitor.html" if path else "index.html")).read_bytes()
                 self.send_response(200)
@@ -6161,6 +6172,9 @@ def make_handler(svc: Service):
                 return
             if path == "/config":
                 self._config_post()
+                return
+            if path == "/api/conversations":
+                self._conversation_post()
                 return
             if path in ("/unload", "/load") and not self._control_body():
                 return
@@ -6364,6 +6378,15 @@ def make_handler(svc: Service):
             scheme = "https" if (self.headers.get("X-Forwarded-Proto") or "").lower() == "https" else "http"
             self._json(200, gen.response(images, job, figures, f"{scheme}://{host}"))
 
+        def do_DELETE(self):
+            if not self._authorized():
+                return
+            path = self.path.split("?")[0].rstrip("/")
+            if path.startswith("/api/conversations/"):
+                self._conversation_delete(path[len("/api/conversations/"):])
+                return
+            self._json(404, {"error": {"message": "not found"}})
+
         def _props(self):
             model = parse_qs(urlsplit(self.path).query).get("model", [svc.model])[0]
             if model not in svc.model_names():
@@ -6448,6 +6471,49 @@ def make_handler(svc: Service):
                 self._json(500, {"error": {"type": "server_error", "message": f"the run config cannot be read: {e}"}})
                 return
             self._json(200, runconfig.view(cfg, svc.config_path))
+
+        def _conversation_get(self, conv_id: str):
+            if not svc.conversations:
+                self._json(404, {"error": {"message": "this server was started without a run config"}})
+                return
+            conv = svc.conversations.get(conv_id)
+            if conv is None:
+                self._json(404, {"error": {"message": "conversation not found"}})
+                return
+            self._json(200, conv)
+
+        def _conversation_post(self):
+            """Save (create, replace, or rename) one conversation - JSON from Strata's own page only, as /settings.
+            "messages" given: create it (no "id") or fully replace it (its "id"); omitted: rename only, "id" required."""
+            body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+            if not self._own_page("conversations can be saved"):
+                return
+            if not svc.conversations:
+                self._json(404, {"error": {"message": "this server was started without a run config"}})
+                return
+            try:
+                req = json.loads(body or b"{}")
+                if not isinstance(req, dict):
+                    raise ValueError("send a JSON object")
+                messages = req.get("messages")
+                if messages is not None and not isinstance(messages, list):
+                    raise ValueError("\"messages\" must be a list")
+                saved = svc.conversations.save(req.get("id"), req.get("title", ""), messages)
+            except ValueError as e:
+                self._json(400, {"error": {"type": "invalid_request_error", "message": str(e)}})
+                return
+            if saved is None:
+                self._json(404, {"error": {"message": "conversation not found"}})
+                return
+            self._json(200, saved)
+
+        def _conversation_delete(self, conv_id: str):
+            if not self._own_page("conversations can be deleted"):
+                return
+            if not svc.conversations:
+                self._json(404, {"error": {"message": "this server was started without a run config"}})
+                return
+            self._json(200, {"deleted": svc.conversations.delete(conv_id)})
 
         def _config_post(self):
             """#564: change a few documented keys of the run config - JSON from Strata's own page only, as
@@ -7966,6 +8032,7 @@ def main(argv=None, *, lifecycle_event=None, interrupt_exit_code: int = 0) -> in
                       ", ".join(f"{k}={v}" for k, v in svc.shared.items()), flush=True)
         except (OSError, ValueError):
             svc.shared = {}
+        svc.conversations = ConversationStore(str(Path(a.config).with_suffix("")) + ".conversations.db")
     if hub is not None:
         import atexit
         svc.mcp = hub
