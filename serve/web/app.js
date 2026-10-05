@@ -74,7 +74,7 @@ function showTab(name) {
   if (tab === "images") $("img-prompt").focus();
   if (location.hash.slice(1) !== tab) history.replaceState(null, "", tab === "chat" ? location.pathname : `#${tab}`);
   if (tab === "chat") $("input").focus();
-  if (tab === "monitor") loadMcp();
+  if (tab === "monitor") { loadMcp(); ensureViz().then(() => vizRun(true)); } else { vizRun(false); }
   if (tab === "about") loadConfig();
   if (lastMetrics) render(lastMetrics);
 }
@@ -199,6 +199,7 @@ function render(m) {
   if (live.queued > 0) setPill("queued", `${live.queued} queued`);
   if (tab === "monitor") renderMonitor(live, hw, st, eng, h, last, m.requests || [], m.totals, m.requests_kept);
   if (tab === "monitor") renderConvCache(m.conversation_cache);
+  if (tab === "monitor") { if (viz) viz.update(m); renderPcLegend(hw); }
   if (tab === "about") renderAbout(eng, hw, st);
 }
 
@@ -361,6 +362,63 @@ function renderMonitor(live, hw, st, eng, h, last, requests, totals, kept) {
   all.textContent = reqShowAll ? "Show fewer" : `Show all (${kept})`;
   $("req-wrap").classList.toggle("all", reqShowAll);
   $("req-totals").textContent = renderTotals(totals);
+}
+
+// ------------------------------------------------------------------ the live 3D PC (serve/web/pcviz.js)
+// Loaded only when the Monitor is first opened: it pulls in three.js, which is far larger than this page, and a
+// chat-only session should never pay for it. The frame loop runs only while the Monitor is open and visible.
+let viz = null, vizBusy = false, vizTry = 0;
+async function ensureViz() {
+  if (viz || vizBusy) return viz;
+  vizBusy = true;
+  try {
+    // relative to THIS script (/web/app.js), which is how import() resolves in a classic script - so it keeps
+    // working behind a path-prefixed proxy, like every other asset the page asks for
+    const mod = await import(`./pcviz.js${vizTry ? `?r=${vizTry}` : ""}`);
+    viz = mod.createPcViz($("pc-canvas"));
+    viz.onHover(showPcPart);
+    if (lastMetrics) viz.update(lastMetrics);
+    $("pc-fallback").hidden = true;
+  } catch (e) {
+    $("pc-fallback").hidden = false;
+    $("pc-fallback-text").textContent =
+      `The 3D view could not start: ${(e && e.message) || e}. Reload the page if it keeps failing.`;
+  } finally {
+    vizBusy = false;
+  }
+  return viz;
+}
+function vizRun(on) { if (viz) viz.setRunning(on && tab === "monitor" && document.visibilityState === "visible"); }
+$("pc-retry").onclick = () => { vizTry++; viz = null; ensureViz().then(() => vizRun(true)); };
+document.addEventListener("visibilitychange", () => vizRun(true));
+
+function showPcPart(r) {
+  $("pc-readout").hidden = !r;
+  if (!r) return;
+  $("pc-readout-name").textContent = r[0];
+  $("pc-readout-val").textContent = r[1];
+}
+
+// the legend dots use the same cool -> warm -> hot ramp as the 3D parts, mixed from the theme's own tokens
+function heatCss(t) {
+  t = Math.max(0, Math.min(1, t || 0));
+  const from = t < 0.5 ? "--st-heat-cool" : "--st-heat-warm";
+  const to = t < 0.5 ? "--st-heat-warm" : "--st-heat-hot";
+  return `color-mix(in srgb, var(${to}) ${Math.round((t < 0.5 ? t * 2 : (t - 0.5) * 2) * 100)}%, var(${from}))`;
+}
+function renderPcLegend(hw) {
+  const mb = (v) => `${fmt(v, v < 10 ? 1 : 0)} MB/s`;
+  const items = [
+    ["GPU", hw.gpu_util == null ? null : `${fmt(hw.gpu_util)}%`, (hw.gpu_util || 0) / 100],
+    ["Temp", hw.gpu_temp == null ? null : `${fmt(hw.gpu_temp)}°`, ((hw.gpu_temp || 0) - 30) / 55],
+    ["VRAM", hw.gpu_mem_total ? `${gb(hw.gpu_mem_used)} GB` : null, hw.gpu_mem_total ? hw.gpu_mem_used / hw.gpu_mem_total : 0],
+    ["CPU", hw.cpu == null ? null : `${fmt(hw.cpu)}%`, (hw.cpu || 0) / 100],
+    ["RAM", hw.ram_total ? `${gb(hw.ram_used)} GB` : null, hw.ram_total ? hw.ram_used / hw.ram_total : 0],
+    ["SSD", hw.disk_read_mb == null ? null : mb(hw.disk_read_mb), (hw.disk_read_mb || 0) / 1200],
+    ["PCIe", hw.gpu_pcie_rx_mb == null ? null : mb(hw.gpu_pcie_rx_mb), (hw.gpu_pcie_rx_mb || 0) / 2500],
+  ].filter((x) => x[1] != null);
+  $("pc-legend").innerHTML = items.map(([k, v, t]) =>
+    `<span class="pc-chip" style="--tone:${heatCss(t)}"><i></i>${esc(k)}<b>${esc(v)}</b></span>`).join("");
 }
 
 function facts(el, rows) {
