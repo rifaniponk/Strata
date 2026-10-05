@@ -127,6 +127,33 @@ main { flex: 1; min-height: 0; display: flex; }
 .chip .st-btn--icon { width: 22px; height: 22px; border-radius: 50%; }
 .chip .st-btn--icon .st-icon { width: 14px; height: 14px; }
 
+/* ---------------------------------------------------------------- monitor: the live 3D PC */
+.pc-card { display: flex; flex-direction: column; gap: var(--st-s-3); }
+.pc-hint { font-size: var(--st-fs-micro); letter-spacing: .06em; text-transform: uppercase; }
+.pc-stage { position: relative; height: clamp(300px, 42vh, 460px); border-radius: var(--st-r-md); overflow: hidden;
+            background: radial-gradient(120% 90% at 50% 8%, color-mix(in srgb, var(--st-accent) 7%, transparent), transparent 62%),
+                        linear-gradient(180deg, var(--st-bg-2), color-mix(in srgb, var(--st-bg-2) 70%, var(--st-surface)));
+            border: 1px solid var(--st-line-soft); }
+.pc-stage canvas { display: block; width: 100%; height: 100%; }
+.pc-readout { position: absolute; left: var(--st-s-3); bottom: var(--st-s-3); display: flex; flex-direction: column; gap: 2px;
+              padding: 9px 13px; border-radius: var(--st-r-sm); background: color-mix(in srgb, var(--st-surface) 88%, transparent);
+              border: 1px solid color-mix(in srgb, var(--st-accent) 28%, var(--st-line)); backdrop-filter: blur(6px);
+              box-shadow: var(--st-glow); pointer-events: none; max-width: 70%; }
+.pc-readout b { font-size: var(--st-fs-micro); font-weight: var(--st-fw-black); letter-spacing: var(--st-track-wide);
+                text-transform: uppercase; color: var(--st-accent-text); }
+.pc-readout span { font-family: var(--st-font-mono); font-size: var(--st-fs-xs); color: var(--st-ink-soft); }
+.pc-fallback { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+               gap: var(--st-s-3); text-align: center; padding: var(--st-s-6); }
+.pc-legend { display: flex; flex-wrap: wrap; gap: var(--st-s-2); }
+.pc-chip { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: var(--st-r-pill);
+           background: var(--st-bg-2); border: 1px solid var(--st-line-soft); font-size: var(--st-fs-micro);
+           font-weight: var(--st-fw-bold); letter-spacing: var(--st-track-wide); text-transform: uppercase;
+           color: var(--st-ink-muted); }
+.pc-chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--tone, var(--st-accent));
+             box-shadow: 0 0 9px var(--tone, var(--st-accent)); }
+.pc-chip b { font-family: var(--st-font-mono); font-size: var(--st-fs-xs); font-weight: var(--st-fw-bold); letter-spacing: -.02em;
+             text-transform: none; color: var(--st-ink); }
+
 /* ---------------------------------------------------------------- monitor */
 .view--monitor, .view--about { overflow-y: auto; }
 .monitor, .about { max-width: 1240px; width: 100%; margin: 0 auto; padding: var(--st-s-6); display: flex; flex-direction: column;
