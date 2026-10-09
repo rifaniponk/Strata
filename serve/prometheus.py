@@ -56,6 +56,31 @@ class Latencies:
                     (("ttft", self.ttft), ("itl", self.itl), ("e2e", self.e2e))}
 
 
+def quantile(counts, n, q):
+    """The q-th quantile of a Histogram's buckets, the way promql's histogram_quantile reads them: find the first
+    bucket whose cumulative count passes q*n, then interpolate inside it.  `counts` is already cumulative (observe
+    counts a value in every bucket it fits).  None until something has been observed, or past the last bucket."""
+    if not n:
+        return None
+    want, below, lo = q * n, 0, 0.0
+    for b, c in zip(BUCKETS, counts):
+        if c >= want:
+            room = c - below
+            return round(lo + (b - lo) * ((want - below) / room if room else 1.0), 4)
+        below, lo = c, b
+    return None                                              # everything sat above the last bucket
+
+
+def summary(lat: dict) -> dict:
+    """The latency histograms as the Monitor can show them: the median, the 90th and the count, per series.  The
+    same numbers Prometheus derives from the buckets, so a tile and a Grafana panel agree."""
+    out = {}
+    for key, (counts, total, n) in lat.items():
+        out[key] = {"p50": quantile(counts, n, 0.5), "p90": quantile(counts, n, 0.9),
+                    "mean": round(total / n, 4) if n else None, "count": n}
+    return out
+
+
 def _num(v, default=0):
     return v if isinstance(v, (int, float)) and not isinstance(v, bool) else default
 
