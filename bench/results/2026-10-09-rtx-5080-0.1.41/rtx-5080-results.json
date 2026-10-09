@@ -737,5 +737,21 @@
     }
    }
   ]
+ },
+ "host": {
+  "date": "2026-10-09",
+  "gpu": "NVIDIA GeForce RTX 5080 16 GB (sm_120)",
+  "driver": "616.56",
+  "cuda": "13.0",
+  "gpu_power_limit_w": 360,
+  "pcie": "gen 4 x16 negotiated (GPU supports gen 5, host tops out at gen 4); gen 1 at idle",
+  "cpu": "Intel Core i7-14700, 20 cores / 28 threads",
+  "ram": "127.8 GiB DDR4-3200, 4 x 32 GB Team Group UD4 (kit rated 3600, configured 3200 MT/s, SPD 2400)",
+  "ram_channels": "dual-channel, ~51.2 GB/s theoretical",
+  "storage": "MSI M480 PRO 2 TB NVMe",
+  "os": "Windows 11 Pro build 26200",
+  "engine": "0.1.41 prebuilt release (sm_75/86/89/120, PTX)",
+  "repo_commit": "99eb3ea",
+  "calibrated": "2026-10-09, 56.3 tok/s; kept --pool-workers 5 and the adaptive expert tier"
  }
 }
