@@ -1,0 +1,741 @@
+{
+ "static": {
+  "gpu_name": "NVIDIA GeForce RTX 5080",
+  "gpu_count": 1,
+  "gpu_note": null,
+  "cpu_name": "Intel(R) Core(TM) i7-14700",
+  "cores": 20,
+  "threads": 28,
+  "psutil": true
+ },
+ "engine": {
+  "model": "qwen3.8-flash-next-iq3_s",
+  "max_context": 131072,
+  "images": true,
+  "version": "0.1.41",
+  "context": 131072,
+  "kv": "int8",
+  "kv_resident": 32768,
+  "expert_slots": 3669,
+  "expert_cache_mib": 7184,
+  "expert_slots_primary": 3669,
+  "expert_cache_primary_mib": 7184,
+  "spec": 6,
+  "mtp_max": 4,
+  "lookup": 3,
+  "vram_free_mib": 231,
+  "cvec": 0,
+  "arena_mib": 47962,
+  "pool_workers": 5,
+  "pcie_frac": "0.55",
+  "spec_min_p": "0.50",
+  "conversation_cache_mib": 0,
+  "conversation_cache_slots": 4,
+  "conversation_cache_min_free_mib": 2560,
+  "tail_role_token": -1,
+  "vram_elastic": 0,
+  "engine": "0.1.41"
+ },
+ "settings": [
+  "--pack",
+  "C:\\Users\\rifan\\project\\Strata-data\\packs\\iq3_s",
+  "--native",
+  "C:\\Users\\rifan\\project\\Strata-data\\models\\IQ3_S\\Qwen3.8-Flash-Next-GSQ-RCO-IQ3_S-00001-of-00002.gguf",
+  "--ple-gguf",
+  "C:\\Users\\rifan\\project\\Strata-data\\models\\IQ3_S\\Qwen3.8-Flash-Next-GSQ-RCO-IQ3_S-00002-of-00002.gguf",
+  "--expert-profile",
+  "C:\\Users\\rifan\\project\\strata\\data\\expert-profile.bin",
+  "--expert-cache",
+  "auto",
+  "--prefill",
+  "auto",
+  "--spec",
+  "4",
+  "--mtp",
+  "C:\\Users\\rifan\\project\\Strata-data\\mtp\\rt",
+  "--max-context",
+  "131072",
+  "--kv",
+  "int8",
+  "--kv-resident",
+  "32768",
+  "--vision",
+  "--vram-reserve-mib",
+  "700",
+  "--spec-min-p",
+  "0.5",
+  "--pool-workers",
+  "5",
+  "--adapt-every",
+  "1",
+  "--adapt-swaps",
+  "80",
+  "--adapt-decay",
+  "0.97"
+ ],
+ "latency_histograms": {
+  "ttft": {
+   "p50": 1.9643,
+   "p90": 57.3333,
+   "mean": 10.5285,
+   "count": 17
+  },
+  "itl": {
+   "p50": 0.0296,
+   "p90": 0.0379,
+   "mean": 0.0201,
+   "count": 43091
+  },
+  "e2e": {
+   "p50": 5.625,
+   "p90": 70.6667,
+   "mean": 61.3851,
+   "count": 17
+  }
+ },
+ "totals": {
+  "since": 1791507593.2760549,
+  "requests": 17,
+  "prompt_tokens": 496637,
+  "reused": 102,
+  "output_tokens": 43108,
+  "prompt_ms": 178431.1,
+  "decode_ms": 864981.1,
+  "drafts_offered": 35948,
+  "drafts_accepted": 27548
+ },
+ "summary": {
+  "4096": {
+   "prompt_tokens": {
+    "runs": [
+     4179,
+     4179,
+     4179
+    ],
+    "median": 4179,
+    "min": 4179,
+    "max": 4179
+   },
+   "prefill_tok_s": {
+    "runs": [
+     1767.9,
+     1782.8,
+     1784.5
+    ],
+    "median": 1782.8,
+    "min": 1767.9,
+    "max": 1784.5
+   },
+   "decode_tok_s": {
+    "runs": [
+     40.5,
+     56.7,
+     57.5
+    ],
+    "median": 56.7,
+    "min": 40.5,
+    "max": 57.5
+   },
+   "ttft_s": {
+    "runs": [
+     2.38,
+     2.37,
+     2.37
+    ],
+    "median": 2.37,
+    "min": 2.37,
+    "max": 2.38
+   },
+   "wall_s": {
+    "runs": [
+     6.13,
+     4.93,
+     4.6
+    ],
+    "median": 4.93,
+    "min": 4.6,
+    "max": 6.13
+   },
+   "hit_rate": {
+    "runs": [
+     0.759,
+     0.833,
+     0.849
+    ],
+    "median": 0.833,
+    "min": 0.759,
+    "max": 0.849
+   },
+   "mtp_accept_pct": {
+    "runs": [
+     73.2,
+     73.9,
+     77.9
+    ],
+    "median": 73.9,
+    "min": 73.2,
+    "max": 77.9
+   },
+   "vram_peak_gib": {
+    "runs": [
+     15.37,
+     15.37,
+     15.37
+    ],
+    "median": 15.37,
+    "min": 15.37,
+    "max": 15.37
+   },
+   "gpu_power_peak": {
+    "runs": [
+     187.0,
+     192.0,
+     189.0
+    ],
+    "median": 189.0,
+    "min": 187.0,
+    "max": 192.0
+   },
+   "gpu_temp_peak": {
+    "runs": [
+     51,
+     51,
+     51
+    ],
+    "median": 51,
+    "min": 51,
+    "max": 51
+   },
+   "pcie_rx_peak_mb_s": {
+    "runs": [
+     43546.0,
+     33491.0,
+     45818.0
+    ],
+    "median": 43546.0,
+    "min": 33491.0,
+    "max": 45818.0
+   }
+  },
+  "32768": {
+   "prompt_tokens": {
+    "runs": [
+     32832,
+     32832,
+     32832
+    ],
+    "median": 32832,
+    "min": 32832,
+    "max": 32832
+   },
+   "prefill_tok_s": {
+    "runs": [
+     2882.3,
+     2895.3,
+     2884.3
+    ],
+    "median": 2884.3,
+    "min": 2882.3,
+    "max": 2895.3
+   },
+   "decode_tok_s": {
+    "runs": [
+     51.6,
+     48.4,
+     50.4
+    ],
+    "median": 50.4,
+    "min": 48.4,
+    "max": 51.6
+   },
+   "ttft_s": {
+    "runs": [
+     11.42,
+     11.38,
+     11.42
+    ],
+    "median": 11.42,
+    "min": 11.38,
+    "max": 11.42
+   },
+   "wall_s": {
+    "runs": [
+     15.55,
+     15.73,
+     15.7
+    ],
+    "median": 15.7,
+    "min": 15.55,
+    "max": 15.73
+   },
+   "hit_rate": {
+    "runs": [
+     0.79,
+     0.791,
+     0.794
+    ],
+    "median": 0.791,
+    "min": 0.79,
+    "max": 0.794
+   },
+   "mtp_accept_pct": {
+    "runs": [
+     85.0,
+     86.5,
+     83.0
+    ],
+    "median": 85.0,
+    "min": 83.0,
+    "max": 86.5
+   },
+   "vram_peak_gib": {
+    "runs": [
+     15.37,
+     15.37,
+     15.37
+    ],
+    "median": 15.37,
+    "min": 15.37,
+    "max": 15.37
+   },
+   "gpu_power_peak": {
+    "runs": [
+     274.0,
+     270.0,
+     273.0
+    ],
+    "median": 273.0,
+    "min": 270.0,
+    "max": 274.0
+   },
+   "gpu_temp_peak": {
+    "runs": [
+     61,
+     60,
+     61
+    ],
+    "median": 61,
+    "min": 60,
+    "max": 61
+   },
+   "pcie_rx_peak_mb_s": {
+    "runs": [
+     46425.0,
+     49687.0,
+     47818.0
+    ],
+    "median": 47818.0,
+    "min": 46425.0,
+    "max": 49687.0
+   }
+  },
+  "128000": {
+   "prompt_tokens": {
+    "runs": [
+     128061,
+     128061,
+     128061
+    ],
+    "median": 128061,
+    "min": 128061,
+    "max": 128061
+   },
+   "prefill_tok_s": {
+    "runs": [
+     2918.7,
+     3006.0,
+     3025.3
+    ],
+    "median": 3006.0,
+    "min": 2918.7,
+    "max": 3025.3
+   },
+   "decode_tok_s": {
+    "runs": [
+     52.1,
+     55.8,
+     53.9
+    ],
+    "median": 53.9,
+    "min": 52.1,
+    "max": 55.8
+   },
+   "ttft_s": {
+    "runs": [
+     43.93,
+     42.66,
+     42.38
+    ],
+    "median": 42.66,
+    "min": 42.38,
+    "max": 43.93
+   },
+   "wall_s": {
+    "runs": [
+     48.16,
+     46.94,
+     46.67
+    ],
+    "median": 46.94,
+    "min": 46.67,
+    "max": 48.16
+   },
+   "hit_rate": {
+    "runs": [
+     0.794,
+     0.794,
+     0.791
+    ],
+    "median": 0.794,
+    "min": 0.791,
+    "max": 0.794
+   },
+   "mtp_accept_pct": {
+    "runs": [
+     80.4,
+     89.0,
+     80.3
+    ],
+    "median": 80.4,
+    "min": 80.3,
+    "max": 89.0
+   },
+   "vram_peak_gib": {
+    "runs": [
+     15.37,
+     15.37,
+     15.37
+    ],
+    "median": 15.37,
+    "min": 15.37,
+    "max": 15.37
+   },
+   "gpu_power_peak": {
+    "runs": [
+     275.0,
+     274.0,
+     283.0
+    ],
+    "median": 275.0,
+    "min": 274.0,
+    "max": 283.0
+   },
+   "gpu_temp_peak": {
+    "runs": [
+     64,
+     64,
+     65
+    ],
+    "median": 64,
+    "min": 64,
+    "max": 65
+   },
+   "pcie_rx_peak_mb_s": {
+    "runs": [
+     48554.0,
+     49843.0,
+     50452.0
+    ],
+    "median": 49843.0,
+    "min": 48554.0,
+    "max": 50452.0
+   }
+  }
+ },
+ "runs": {
+  "4096": [
+   {
+    "variant": 0,
+    "target_tokens": 4096,
+    "prompt_tokens": 4179,
+    "prompt_ms": 2363.8,
+    "prefill_tok_s": 1767.9,
+    "cached_tokens": 0,
+    "output_tokens": 152,
+    "decode_ms": 3751.4,
+    "decode_tok_s": 40.5,
+    "draft_n": 127,
+    "draft_accepted": 93,
+    "mtp_accept_pct": 73.2,
+    "ttft_s": 2.382,
+    "wall_s": 6.13,
+    "finish": "stop",
+    "hit_rate": 0.759,
+    "pcie_share": 0.166,
+    "file_mb": 0,
+    "ram_blobs": 0,
+    "hw": {
+     "samples": 7,
+     "gpu_util_mean": 96.3,
+     "gpu_util_peak": 100,
+     "vram_peak_gib": 15.37,
+     "gpu_temp_peak": 51,
+     "gpu_power_peak": 186.7,
+     "pcie_rx_peak_mb_s": 43546.5,
+     "cpu_mean": 34.2,
+     "ram_peak_gib": 90.34
+    }
+   },
+   {
+    "variant": 1,
+    "target_tokens": 4096,
+    "prompt_tokens": 4179,
+    "prompt_ms": 2344.1,
+    "prefill_tok_s": 1782.8,
+    "cached_tokens": 0,
+    "output_tokens": 146,
+    "decode_ms": 2573.4,
+    "decode_tok_s": 56.7,
+    "draft_n": 115,
+    "draft_accepted": 85,
+    "mtp_accept_pct": 73.9,
+    "ttft_s": 2.365,
+    "wall_s": 4.93,
+    "finish": "stop",
+    "hit_rate": 0.833,
+    "pcie_share": 0.123,
+    "file_mb": 0,
+    "ram_blobs": 0,
+    "hw": {
+     "samples": 5,
+     "gpu_util_mean": 99.4,
+     "gpu_util_peak": 100,
+     "vram_peak_gib": 15.37,
+     "gpu_temp_peak": 51,
+     "gpu_power_peak": 191.5,
+     "pcie_rx_peak_mb_s": 33491.4,
+     "cpu_mean": 32.2,
+     "ram_peak_gib": 90.14
+    }
+   },
+   {
+    "variant": 2,
+    "target_tokens": 4096,
+    "prompt_tokens": 4179,
+    "prompt_ms": 2341.8,
+    "prefill_tok_s": 1784.5,
+    "cached_tokens": 0,
+    "output_tokens": 129,
+    "decode_ms": 2242.6,
+    "decode_tok_s": 57.5,
+    "draft_n": 104,
+    "draft_accepted": 81,
+    "mtp_accept_pct": 77.9,
+    "ttft_s": 2.368,
+    "wall_s": 4.6,
+    "finish": "stop",
+    "hit_rate": 0.849,
+    "pcie_share": 0.112,
+    "file_mb": 0,
+    "ram_blobs": 0,
+    "hw": {
+     "samples": 5,
+     "gpu_util_mean": 99.8,
+     "gpu_util_peak": 100,
+     "vram_peak_gib": 15.37,
+     "gpu_temp_peak": 51,
+     "gpu_power_peak": 188.6,
+     "pcie_rx_peak_mb_s": 45817.7,
+     "cpu_mean": 31.6,
+     "ram_peak_gib": 90.15
+    }
+   }
+  ],
+  "32768": [
+   {
+    "variant": 0,
+    "target_tokens": 32768,
+    "prompt_tokens": 32832,
+    "prompt_ms": 11390.8,
+    "prefill_tok_s": 2882.3,
+    "cached_tokens": 0,
+    "output_tokens": 213,
+    "decode_ms": 4131.0,
+    "decode_tok_s": 51.6,
+    "draft_n": 167,
+    "draft_accepted": 142,
+    "mtp_accept_pct": 85.0,
+    "ttft_s": 11.422,
+    "wall_s": 15.55,
+    "finish": "stop",
+    "hit_rate": 0.79,
+    "pcie_share": 0.153,
+    "file_mb": 0,
+    "ram_blobs": 0,
+    "hw": {
+     "samples": 16,
+     "gpu_util_mean": 97.1,
+     "gpu_util_peak": 100,
+     "vram_peak_gib": 15.37,
+     "gpu_temp_peak": 61,
+     "gpu_power_peak": 274.5,
+     "pcie_rx_peak_mb_s": 46424.8,
+     "cpu_mean": 28.1,
+     "ram_peak_gib": 90.29
+    }
+   },
+   {
+    "variant": 1,
+    "target_tokens": 32768,
+    "prompt_tokens": 32832,
+    "prompt_ms": 11339.6,
+    "prefill_tok_s": 2895.3,
+    "cached_tokens": 0,
+    "output_tokens": 211,
+    "decode_ms": 4361.1,
+    "decode_tok_s": 48.4,
+    "draft_n": 155,
+    "draft_accepted": 134,
+    "mtp_accept_pct": 86.5,
+    "ttft_s": 11.375,
+    "wall_s": 15.73,
+    "finish": "stop",
+    "hit_rate": 0.791,
+    "pcie_share": 0.153,
+    "file_mb": 0,
+    "ram_blobs": 0,
+    "hw": {
+     "samples": 16,
+     "gpu_util_mean": 98.6,
+     "gpu_util_peak": 100,
+     "vram_peak_gib": 15.37,
+     "gpu_temp_peak": 60,
+     "gpu_power_peak": 269.5,
+     "pcie_rx_peak_mb_s": 49687.1,
+     "cpu_mean": 29.9,
+     "ram_peak_gib": 90.27
+    }
+   },
+   {
+    "variant": 2,
+    "target_tokens": 32768,
+    "prompt_tokens": 32832,
+    "prompt_ms": 11383.2,
+    "prefill_tok_s": 2884.3,
+    "cached_tokens": 0,
+    "output_tokens": 216,
+    "decode_ms": 4287.8,
+    "decode_tok_s": 50.4,
+    "draft_n": 171,
+    "draft_accepted": 142,
+    "mtp_accept_pct": 83.0,
+    "ttft_s": 11.417,
+    "wall_s": 15.7,
+    "finish": "stop",
+    "hit_rate": 0.794,
+    "pcie_share": 0.151,
+    "file_mb": 0,
+    "ram_blobs": 0,
+    "hw": {
+     "samples": 16,
+     "gpu_util_mean": 96.8,
+     "gpu_util_peak": 100,
+     "vram_peak_gib": 15.37,
+     "gpu_temp_peak": 61,
+     "gpu_power_peak": 273.4,
+     "pcie_rx_peak_mb_s": 47818.3,
+     "cpu_mean": 27.9,
+     "ram_peak_gib": 90.24
+    }
+   }
+  ],
+  "128000": [
+   {
+    "variant": 0,
+    "target_tokens": 128000,
+    "prompt_tokens": 128061,
+    "prompt_ms": 43876.7,
+    "prefill_tok_s": 2918.7,
+    "cached_tokens": 0,
+    "output_tokens": 218,
+    "decode_ms": 4187.0,
+    "decode_tok_s": 52.1,
+    "draft_n": 163,
+    "draft_accepted": 131,
+    "mtp_accept_pct": 80.4,
+    "ttft_s": 43.926,
+    "wall_s": 48.16,
+    "finish": "stop",
+    "hit_rate": 0.794,
+    "pcie_share": 0.149,
+    "file_mb": 0,
+    "ram_blobs": 0,
+    "hw": {
+     "samples": 48,
+     "gpu_util_mean": 99.6,
+     "gpu_util_peak": 100,
+     "vram_peak_gib": 15.37,
+     "gpu_temp_peak": 64,
+     "gpu_power_peak": 275.4,
+     "pcie_rx_peak_mb_s": 48554.2,
+     "cpu_mean": 25.1,
+     "ram_peak_gib": 90.69
+    }
+   },
+   {
+    "variant": 1,
+    "target_tokens": 128000,
+    "prompt_tokens": 128061,
+    "prompt_ms": 42601.1,
+    "prefill_tok_s": 3006.0,
+    "cached_tokens": 0,
+    "output_tokens": 237,
+    "decode_ms": 4246.5,
+    "decode_tok_s": 55.8,
+    "draft_n": 164,
+    "draft_accepted": 146,
+    "mtp_accept_pct": 89.0,
+    "ttft_s": 42.658,
+    "wall_s": 46.94,
+    "finish": "stop",
+    "hit_rate": 0.794,
+    "pcie_share": 0.149,
+    "file_mb": 0,
+    "ram_blobs": 0,
+    "hw": {
+     "samples": 47,
+     "gpu_util_mean": 99.7,
+     "gpu_util_peak": 100,
+     "vram_peak_gib": 15.37,
+     "gpu_temp_peak": 64,
+     "gpu_power_peak": 274.2,
+     "pcie_rx_peak_mb_s": 49843.4,
+     "cpu_mean": 25.1,
+     "ram_peak_gib": 91.11
+    }
+   },
+   {
+    "variant": 2,
+    "target_tokens": 128000,
+    "prompt_tokens": 128061,
+    "prompt_ms": 42330.5,
+    "prefill_tok_s": 3025.3,
+    "cached_tokens": 0,
+    "output_tokens": 229,
+    "decode_ms": 4249.6,
+    "decode_tok_s": 53.9,
+    "draft_n": 178,
+    "draft_accepted": 143,
+    "mtp_accept_pct": 80.3,
+    "ttft_s": 42.382,
+    "wall_s": 46.67,
+    "finish": "stop",
+    "hit_rate": 0.791,
+    "pcie_share": 0.153,
+    "file_mb": 0,
+    "ram_blobs": 0,
+    "hw": {
+     "samples": 46,
+     "gpu_util_mean": 99.2,
+     "gpu_util_peak": 100,
+     "vram_peak_gib": 15.37,
+     "gpu_temp_peak": 65,
+     "gpu_power_peak": 283.0,
+     "pcie_rx_peak_mb_s": 50452.0,
+     "cpu_mean": 22.4,
+     "ram_peak_gib": 91.28
+    }
+   }
+  ]
+ }
+}
