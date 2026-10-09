@@ -125,9 +125,12 @@ const METRICS = [
   {key: "pcie", label: "PCIe", icon: "link", unit: "", series: "gpu_pcie_rx_mb", tone: "info"},
   {key: "cpu", label: "CPU", icon: "cpu", unit: "%", series: "cpu", max: 100},
   {key: "disk", label: "Disk read", icon: "disk", unit: "MB/s", series: "disk_read_mb", tone: "info"},
+  // main's /metrics additions: the latency histograms Prometheus serves (#793) and the batch slots (#793, #857)
+  {key: "ttft", label: "First token", icon: "clock", unit: "s", tone: "warn", wide: true},
+  {key: "batch", label: "Batch slots", icon: "activity", unit: "", tone: "info", wide: true},
 ];
 $("metrics").innerHTML = METRICS.map((m) => `
-  <div class="st-card metric-card"><div class="st-metric">
+  <div class="st-card metric-card${m.wide ? " metric-card--wide" : ""}"><div class="st-metric">
     <span class="st-metric__label">${icon(m.icon, "st-icon st-icon--sm")}${esc(m.label)}</span>
     ${m.key === "speed" ? `<div class="speed-values">
       <div><span class="st-metric__value" id="mv-speed">-</span><span class="st-metric__sub" id="ms-speed">Decode</span></div>
@@ -152,6 +155,34 @@ function spark(id, values, max) {
   svg.querySelector(".line").setAttribute("d", line);
   svg.querySelector(".area").setAttribute("d", `${line}L100,32L0,32Z`);
 }
+// The batch slots card (main's #793 / #857 concurrency work): live.slots is one entry per --batch slot, and
+// live.running / live.waiting count the requests in flight.  The server keeps no series for these, so the sparkline
+// is this page's own minute of polls.
+const batchHistory = [];
+function renderBatch(live, eng, e2e) {
+  const slots = Array.isArray(live.slots) ? live.slots : null;
+  const par = live.parallel || (eng.batch || 0);
+  const busy = slots ? slots.filter((x) => x.state !== "idle").length
+             : live.state === "reading" || live.state === "generating" ? 1 : 0;
+  batchHistory.push(busy);
+  if (batchHistory.length > 60) batchHistory.shift();
+  if (!par) {                                 // no --batch: one request at a time, so say what the queue is doing
+    setMetric("batch", live.queued ? fmt(live.queued) : busy ? "1" : "0", live.queued ? "queued" : "running",
+              "single slot · --batch runs more");
+  } else {
+    const by = (st) => (slots || []).filter((x) => x.state === st).length;
+    const waiting = (live.waiting || 0) + (live.outside_slots || 0) + (live.queued || 0);
+    const parts = [];
+    if (by("generating")) parts.push(`${by("generating")} generating`);
+    if (by("reading")) parts.push(`${by("reading")} reading`);
+    if (waiting) parts.push(`${fmt(waiting)} waiting`);
+    if (eng.batch_groups > 1) parts.push(`${eng.batch_groups} groups`);
+    setMetric("batch", `${busy}`, `/ ${par}`,
+              parts.join(" · ") || (e2e.p50 ? `${fmt(e2e.p50, 1)} s median request` : "all idle"));
+  }
+  spark("sp-batch", batchHistory, Math.max(1, par));
+}
+
 function setMetric(key, value, unit, sub) {
   $(`mv-${key}`).innerHTML = value == null ? "–" : `${esc(value)}${unit ? `<small>${esc(unit)}</small>` : ""}`;
   $(`ms-${key}`).textContent = sub || "";
@@ -197,7 +228,7 @@ function render(m) {
     setPill("idle", "Idle");
   }
   if (live.queued > 0) setPill("queued", `${live.queued} queued`);
-  if (tab === "monitor") renderMonitor(live, hw, st, eng, h, last, m.requests || [], m.totals, m.requests_kept);
+  if (tab === "monitor") renderMonitor(live, hw, st, eng, h, last, m.requests || [], m.totals, m.requests_kept, m.latency || {});
   if (tab === "monitor") renderConvCache(m.conversation_cache);
   if (tab === "monitor") { if (viz) viz.update(m); renderPcLegend(hw); }
   if (tab === "about") renderAbout(eng, hw, st);
@@ -245,7 +276,7 @@ function renderTotals(t) {
   return `Since ${since}: ${fmt(t.requests)} requests · ${fmt(read)} prompt tokens read${pSpeed} (${fmt(t.reused)} reused) · ` +
          `${fmt(t.output_tokens)} written${oSpeed}`;
 }
-function renderMonitor(live, hw, st, eng, h, last, requests, totals, kept) {
+function renderMonitor(live, hw, st, eng, h, last, requests, totals, kept, lat) {
   // model state
   const on = live.queued > 0 ? "queued" : live.state;
   for (const b of document.querySelectorAll("#state-badges .st-badge")) b.classList.toggle("on", b.dataset.s === on || b.dataset.s === live.state);
@@ -313,6 +344,15 @@ function renderMonitor(live, hw, st, eng, h, last, requests, totals, kept) {
               hw.disk_write_mb == null ? "" : `write ${fmt(hw.disk_write_mb, 1)} MB/s`);
   }
   spark("sp-disk", h.disk_read_mb);
+  // time to the first token: the median of the same histogram /metrics serves Prometheus, and the last requests' own
+  const ttft = lat.ttft || {}, e2e = lat.e2e || {}, itl = lat.itl || {};
+  setMetric("ttft", ttft.p50 == null ? null : fmt(ttft.p50, 2), "s",
+            ttft.p50 == null ? (totals && totals.requests ? "no reading yet" : "waiting for a request")
+            : `p90 ${fmt(ttft.p90, 2)} s · ${fmt(ttft.count)} request${ttft.count === 1 ? "" : "s"}` +
+              (itl.p50 ? ` · ${fmt(itl.p50 * 1000, itl.p50 < 0.1 ? 1 : 0)} ms between tokens` : ""));
+  spark("sp-ttft", requests.map((r) => r.ttft_s).filter((x) => x != null).reverse());
+  // the batch slots (--batch): how many are busy now, and what each is doing
+  renderBatch(live, eng, e2e);
 
   // context fill: the running request, else the last one
   const ctx = eng.max_context || 0;

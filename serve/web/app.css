@@ -167,6 +167,8 @@ main { flex: 1; min-height: 0; display: flex; }
 .state-card__row { display: flex; justify-content: space-between; gap: var(--st-s-4); font-size: var(--st-fs-sm);
                    font-weight: var(--st-fw-medium); font-variant-numeric: tabular-nums; }
 .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--st-s-4); }
+/* the two cards whose sub-line carries a sentence (percentiles, what each batch slot is doing) fill the last row */
+.metric-card--wide { grid-column: span 2; }
 .metric-card { padding: var(--st-s-4) var(--st-s-5); transition: border-color var(--st-dur), transform var(--st-dur); }
 .metric-card:hover { border-color: color-mix(in srgb, var(--st-accent) 28%, var(--st-line)); transform: translateY(-1px); }
 .st-metric__sub { min-height: 1em; }
@@ -254,6 +256,7 @@ main { flex: 1; min-height: 0; display: flex; }
 /* ---------------------------------------------------------------- narrow screens */
 @media (max-width: 1000px) {
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric-card--wide { grid-column: span 1; }
   .monitor-row { grid-template-columns: 1fr; }
   .cc-bars { grid-template-columns: 1fr; }
   .cfg-form { grid-template-columns: 1fr; gap: 4px; }

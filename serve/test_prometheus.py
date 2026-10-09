@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from serve.frontend import ChatTemplate  # noqa: E402
-from serve.prometheus import BUCKETS, Latencies, render, wants_prometheus  # noqa: E402
+from serve.prometheus import BUCKETS, Latencies, quantile, render, summary, wants_prometheus  # noqa: E402
 from serve.server import ByteTokenizer, MockEngine, Service, serve  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -61,6 +61,18 @@ class Units(unittest.TestCase):
         self.assertEqual(s["ttft"][2], 1)
         self.assertEqual(s["e2e"][2], 2)
         self.assertEqual(counts, sorted(counts))
+
+    def test_quantiles_read_the_same_buckets_promql_does(self):
+        lat = Latencies()
+        for v in (0.3, 0.3, 0.3, 2.0):            # three in the 0.3 bucket, one well above
+            lat.observe(v, 1, 0.0, v)
+        s = summary(lat.snapshot())
+        self.assertEqual(s["ttft"]["count"], 4)
+        self.assertLessEqual(s["ttft"]["p50"], 0.5)          # the median sits in the small bucket
+        self.assertGreater(s["ttft"]["p90"], 0.5)            # the 90th is pulled up by the slow one
+        self.assertAlmostEqual(s["ttft"]["mean"], 0.725, places=3)
+        self.assertIsNone(summary(Latencies().snapshot())["ttft"]["p50"])   # nothing observed yet
+        self.assertIsNone(quantile([0] * len(BUCKETS), 0, 0.5))
 
     def test_render_reads_the_server_record(self):
         m = {"engine": {"model": 'a "b"', "max_context": 1000},
@@ -133,6 +145,23 @@ class Endpoint(unittest.TestCase):
         self.assertGreaterEqual(json.loads(text)["totals"]["requests"], 1)
         ctype, _ = self.get("/metrics?format=prometheus", "*/*")
         self.assertTrue(ctype.startswith("text/plain"))
+
+    def test_the_json_carries_the_latencies_the_monitor_shows(self):
+        body = json.dumps({"model": "m", "messages": [{"role": "user", "content": "hi"}], "max_tokens": 32}).encode()
+        req = urllib.request.Request(self.base + "/v1/chat/completions", data=body,
+                                     headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=30).read()
+        m = json.loads(self.get("/metrics", "application/json")[1])
+        # the Monitor's First token card reads these, and Prometheus the buckets they come from
+        self.assertGreaterEqual(m["latency"]["ttft"]["count"], 1)
+        self.assertGreaterEqual(m["latency"]["e2e"]["count"], 1)
+        for k in ("p50", "p90", "mean"):
+            self.assertIsInstance(m["latency"]["ttft"][k], float)
+        text = self.get("/metrics", "text/plain")[1]
+        self.assertEqual(m["latency"]["ttft"]["count"],
+                         {k[0]: v for k, v in parse(text).items()}["vllm:time_to_first_token_seconds_count"])
+        # and the card's sparkline reads one per finished request
+        self.assertTrue(any(r.get("ttft_s") is not None for r in m["requests"]))
 
 
 class BatchEngine(MockEngine):
