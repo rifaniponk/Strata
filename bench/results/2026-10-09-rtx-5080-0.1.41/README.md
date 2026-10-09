@@ -18,7 +18,8 @@ costs time to first token, not generation speed.
 | PCIe | **gen 4 x16** negotiated — the GPU supports gen 5, the host tops out at gen 4 (`pcie.link.gen.gpumax` 5, `hostmax` 4); gen 1 at idle |
 | GPU power limit | 360 W |
 | CPU | Intel Core i7-14700, 20 cores / 28 threads |
-| RAM | 127.8 GiB |
+| RAM | 127.8 GiB **DDR4-3200**, 4 x 32 GB Team Group UD4 (kit rated 3600, running at 3200 MT/s; SPD 2400) |
+| Memory bandwidth | ~51.2 GB/s theoretical — the i7-14700 is dual-channel, so the four DIMMs are two channels of two |
 | Storage | MSI M480 PRO 2 TB NVMe (model and packs) |
 | OS | Windows 11 Pro, build 26200 |
 | CUDA | 13.0 (prebuilt release engine, not a source build) |
@@ -113,6 +114,16 @@ tok/s `--calibrate` measured independently.
 **Prefill improves with length.** 1,783 tok/s at 4k is the fixed per-request
 cost dominating a short prompt; by 32k it is amortised and 128k is the fastest
 of the sweep. There is no prefill degradation at the top of this window.
+
+**The memory is DDR4-3200, and that is the relevant bound here.** With the
+expert cache hitting ~0.79 at 32k and 128k, roughly a fifth of expert lookups
+miss the card, and only 0.15 of those misses go over PCIe — the rest are
+computed by the CPU pool reading experts out of system RAM at a theoretical
+~51.2 GB/s across two channels. A DDR5 machine of the same core count would be
+expected to decode faster at the same hit rate, and these numbers should not be
+read as a ceiling for the RTX 5080 generally. It is also why `--calibrate` kept
+the adaptive expert tier (`--adapt-swaps 80`) here: swapping the cache's
+contents harder pays off exactly when the fallback path is comparatively slow.
 
 **VRAM does not move with context.** 15.37 GiB peak at every length: the expert
 cache fills the card and `--kv-resident 32768` keeps KV growth off it, so a
