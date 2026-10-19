@@ -19,7 +19,7 @@ Unchanged from [`2026-10-19-rtx-5080-dc874baa`](../2026-10-19-rtx-5080-dc874baa/
 | --- | --- |
 | GPU | NVIDIA GeForce RTX 5080, 16 GB (Blackwell, sm_120), driver 595.99.02, PCIe gen 5 x16 |
 | CPU | AMD Ryzen 9 9950X, 16 cores / 32 threads, power profile `balanced` (amd_pstate active) |
-| RAM | 92 GiB |
+| RAM | 96 GB DDR5-6400 (2 × 48 GB; the speed as the owner set it, not probed); 91.9 GiB usable by Linux (`MemTotal`), after about 2 GiB for the integrated Radeon GPU and the firmware and kernel reservations |
 | OS | Ubuntu 26.04.1 LTS, kernel 7.0.0-38-generic |
 | CUDA | 13.1 (local source build for sm_120, `BUILD.json` attached) |
 | Strata | engine 0.1.44.1, repo at `dc874baa` (no engine or server code changed) |

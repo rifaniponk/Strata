@@ -1,4 +1,4 @@
-# Benchmark: RTX 5080 16 GB, Ryzen 9 9950X, 92 GiB RAM — Linux, commit dc874baa
+# Benchmark: RTX 5080 16 GB, Ryzen 9 9950X, 96 GB DDR5-6400 — Linux, commit dc874baa
 
 A single 16 GB consumer card running IQ3_S with the full 131,072-token window.
 Reported per [`docs/COMMUNITY_BENCHMARKS.md`](../../../docs/COMMUNITY_BENCHMARKS.md):
@@ -23,7 +23,7 @@ below for why this is not a clean single-variable comparison.
 | PCIe | gen 5 x16 max (`max_link_speed` 32.0 GT/s, `max_link_width` 16); gen 1 at idle (`current_link_speed` 2.5 GT/s) |
 | GPU power limit | 360 W |
 | CPU | AMD Ryzen 9 9950X, 16 cores / 32 threads |
-| RAM | 92 GiB (DDR5; exact speed/timings not probed — no `dmidecode` access on this host) |
+| RAM | 96 GB DDR5-6400 (2 × 48 GB; the speed as the owner set it, not probed); 91.9 GiB usable by Linux (`MemTotal`), after about 2 GiB for the integrated Radeon GPU and the firmware and kernel reservations |
 | Storage | WD_BLACK SN8100 2 TB NVMe (model and packs) |
 | OS | Ubuntu 26.04.1 LTS, kernel 7.0.0-38-generic |
 | CUDA | 13.1 (local source build — no ready-made engine release existed for this version/arch yet, HTTP 404) |
@@ -128,7 +128,7 @@ the GPU model but differ in several other ways at once:
 
 - **Different physical machine.** The earlier report ran on an Intel Core
   i7-14700 / Windows 11 / DDR4-3200 host; this one is an AMD Ryzen 9 9950X /
-  Ubuntu 26.04 / (DDR5) host. CPU-side work — expert routing, attention,
+  Ubuntu 26.04 / DDR5-6400 host. CPU-side work — expert routing, attention,
   system-RAM expert fallback — is part of what decode speed measures here, and
   this CPU/platform may simply be faster at it, independent of any engine
   change.
