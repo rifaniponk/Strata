@@ -1,0 +1,1586 @@
+{
+ "note": "one record per whole-engine run of tune_ab.py; 'change' is what differs from the untuned config (strata-iq3_s.json of 2026-10-19-rtx-5080-dc874baa); verify_final ran the tuned config as saved. perf* runs used the CPU power profile 'performance', all others 'balanced'.",
+ "runs": [
+  {
+   "phase": "sweep",
+   "name": "base2",
+   "change": {},
+   "summary": {
+    "decode_med": 140.6,
+    "decode_agg": 134.0,
+    "decode_per_prompt": [
+     141.3,
+     119.5,
+     144.1
+    ],
+    "accept": 0.785,
+    "pp_4k": 2971.8,
+    "ttft_4k": 1.1,
+    "pp_16k": 3753.8,
+    "ttft_16k": 3.5,
+    "pp_32k": 3684.1,
+    "ttft_32k": 7.2,
+    "decode_16k": 100.0,
+    "decode_32k": 125.8,
+    "agent_ttft": [
+     0.989,
+     1.063,
+     1.073,
+     1.064
+    ],
+    "agent_decode": 133.9,
+    "errors": []
+   },
+   "load_s": 18.0
+  },
+  {
+   "phase": "sweep",
+   "name": "reserve896",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "896"
+    }
+   },
+   "summary": {
+    "decode_med": 140.4,
+    "decode_agg": 134.4,
+    "decode_per_prompt": [
+     141.9,
+     120.9,
+     142.8
+    ],
+    "accept": 0.789,
+    "pp_4k": 3020.6,
+    "ttft_4k": 1.1,
+    "pp_16k": 3759.8,
+    "ttft_16k": 3.5,
+    "pp_32k": 3694.6,
+    "ttft_32k": 7.2,
+    "decode_16k": 109.2,
+    "decode_32k": 127.8,
+    "agent_ttft": [
+     0.985,
+     1.09,
+     1.09,
+     1.077
+    ],
+    "agent_decode": 152.1,
+    "errors": []
+   },
+   "load_s": 12.0
+  },
+  {
+   "phase": "sweep",
+   "name": "aux_auto",
+   "change": {
+    "set": {
+     "--aux-cpus": "auto"
+    }
+   },
+   "summary": {
+    "decode_med": 140.1,
+    "decode_agg": 136.5,
+    "decode_per_prompt": [
+     142.8,
+     124.8,
+     143.8
+    ],
+    "accept": 0.788,
+    "pp_4k": 3071.2,
+    "ttft_4k": 1.1,
+    "pp_16k": 3841.2,
+    "ttft_16k": 3.5,
+    "pp_32k": 3737.9,
+    "ttft_32k": 7.1,
+    "decode_16k": 98.1,
+    "decode_32k": 116.2,
+    "agent_ttft": [
+     0.986,
+     1.046,
+     1.046,
+     1.088
+    ],
+    "agent_decode": 129.6,
+    "errors": []
+   },
+   "load_s": 12.0
+  },
+  {
+   "phase": "sweep",
+   "name": "workers11",
+   "change": {
+    "set": {
+     "--pool-workers": "11"
+    }
+   },
+   "summary": {
+    "decode_med": 139.1,
+    "decode_agg": 132.5,
+    "decode_per_prompt": [
+     141.8,
+     116.8,
+     142.3
+    ],
+    "accept": 0.769,
+    "pp_4k": 3002.1,
+    "ttft_4k": 1.1,
+    "pp_16k": 3758.8,
+    "ttft_16k": 3.5,
+    "pp_32k": 3681.1,
+    "ttft_32k": 7.2,
+    "decode_16k": 108.0,
+    "decode_32k": 120.7,
+    "agent_ttft": [
+     0.981,
+     1.07,
+     1.076,
+     1.085
+    ],
+    "agent_decode": 137.4,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "workers7",
+   "change": {
+    "set": {
+     "--pool-workers": "7"
+    }
+   },
+   "summary": {
+    "decode_med": 131.7,
+    "decode_agg": 126.5,
+    "decode_per_prompt": [
+     135.6,
+     114.2,
+     132.0
+    ],
+    "accept": 0.788,
+    "pp_4k": 2999.4,
+    "ttft_4k": 1.1,
+    "pp_16k": 3763.5,
+    "ttft_16k": 3.5,
+    "pp_32k": 3687.0,
+    "ttft_32k": 7.2,
+    "decode_16k": 98.6,
+    "decode_32k": 112.0,
+    "agent_ttft": [
+     0.991,
+     1.063,
+     1.063,
+     1.075
+    ],
+    "agent_decode": 125.2,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "adapt80",
+   "change": {
+    "set": {
+     "--adapt-every": "1",
+     "--adapt-swaps": "80",
+     "--adapt-decay": "0.97"
+    }
+   },
+   "summary": {
+    "decode_med": 141.4,
+    "decode_agg": 137.2,
+    "decode_per_prompt": [
+     146.4,
+     122.0,
+     146.7
+    ],
+    "accept": 0.765,
+    "pp_4k": 3015.9,
+    "ttft_4k": 1.1,
+    "pp_16k": 3771.3,
+    "ttft_16k": 3.5,
+    "pp_32k": 3653.3,
+    "ttft_32k": 7.2,
+    "decode_16k": 120.1,
+    "decode_32k": 122.7,
+    "agent_ttft": [
+     0.985,
+     1.094,
+     1.116,
+     1.095
+    ],
+    "agent_decode": 134.4,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "adapt160",
+   "change": {
+    "set": {
+     "--adapt-every": "1",
+     "--adapt-swaps": "160",
+     "--adapt-decay": "0.97"
+    }
+   },
+   "summary": {
+    "decode_med": 143.3,
+    "decode_agg": 137.3,
+    "decode_per_prompt": [
+     144.2,
+     120.3,
+     152.1
+    ],
+    "accept": 0.788,
+    "pp_4k": 2939.6,
+    "ttft_4k": 1.1,
+    "pp_16k": 3752.6,
+    "ttft_16k": 3.5,
+    "pp_32k": 3678.0,
+    "ttft_32k": 7.2,
+    "decode_16k": 122.8,
+    "decode_32k": 129.3,
+    "agent_ttft": [
+     0.995,
+     1.083,
+     1.074,
+     1.083
+    ],
+    "agent_decode": 148.8,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "minp03",
+   "change": {
+    "set": {
+     "--spec-min-p": "0.3"
+    }
+   },
+   "summary": {
+    "decode_med": 137.6,
+    "decode_agg": 131.4,
+    "decode_per_prompt": [
+     139.8,
+     116.2,
+     141.7
+    ],
+    "accept": 0.716,
+    "pp_4k": 2976.8,
+    "ttft_4k": 1.1,
+    "pp_16k": 3765.7,
+    "ttft_16k": 3.5,
+    "pp_32k": 3700.4,
+    "ttft_32k": 7.2,
+    "decode_16k": 103.6,
+    "decode_32k": 120.3,
+    "agent_ttft": [
+     0.989,
+     1.101,
+     1.076,
+     1.079
+    ],
+    "agent_decode": 146.7,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "minp07",
+   "change": {
+    "set": {
+     "--spec-min-p": "0.7"
+    }
+   },
+   "summary": {
+    "decode_med": 141.9,
+    "decode_agg": 134.5,
+    "decode_per_prompt": [
+     143.9,
+     118.6,
+     144.6
+    ],
+    "accept": 0.865,
+    "pp_4k": 3009.5,
+    "ttft_4k": 1.1,
+    "pp_16k": 3769.9,
+    "ttft_16k": 3.5,
+    "pp_32k": 3691.4,
+    "ttft_32k": 7.2,
+    "decode_16k": 105.9,
+    "decode_32k": 125.4,
+    "agent_ttft": [
+     0.976,
+     1.07,
+     1.074,
+     1.069
+    ],
+    "agent_decode": 142.1,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "spec3",
+   "change": {
+    "set": {
+     "--spec": "3"
+    }
+   },
+   "summary": {
+    "decode_med": 128.4,
+    "decode_agg": 125.1,
+    "decode_per_prompt": [
+     130.2,
+     114.9,
+     131.8
+    ],
+    "accept": 0.822,
+    "pp_4k": 2963.8,
+    "ttft_4k": 1.1,
+    "pp_16k": 3755.8,
+    "ttft_16k": 3.5,
+    "pp_32k": 3658.2,
+    "ttft_32k": 7.2,
+    "decode_16k": 108.2,
+    "decode_32k": 116.2,
+    "agent_ttft": [
+     1.003,
+     1.081,
+     1.088,
+     1.083
+    ],
+    "agent_decode": 138.5,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "spec6",
+   "change": {
+    "set": {
+     "--spec": "6"
+    }
+   },
+   "summary": {
+    "decode_med": 134.1,
+    "decode_agg": 129.6,
+    "decode_per_prompt": [
+     135.8,
+     117.6,
+     137.7
+    ],
+    "accept": 0.695,
+    "pp_4k": 3002.6,
+    "ttft_4k": 1.1,
+    "pp_16k": 3769.1,
+    "ttft_16k": 3.5,
+    "pp_32k": 3689.3,
+    "ttft_32k": 7.2,
+    "decode_16k": 113.3,
+    "decode_32k": 121.6,
+    "agent_ttft": [
+     0.991,
+     1.369,
+     1.08,
+     1.115
+    ],
+    "agent_decode": 141.0,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "kvres20k",
+   "change": {
+    "set": {
+     "--kv-resident": "20480"
+    }
+   },
+   "summary": {
+    "decode_med": 144.0,
+    "decode_agg": 137.7,
+    "decode_per_prompt": [
+     144.0,
+     124.2,
+     147.4
+    ],
+    "accept": 0.792,
+    "pp_4k": 3009.2,
+    "ttft_4k": 1.1,
+    "pp_16k": 3766.1,
+    "ttft_16k": 3.5,
+    "pp_32k": 3682.9,
+    "ttft_32k": 7.2,
+    "decode_16k": 107.5,
+    "decode_32k": 122.3,
+    "agent_ttft": [
+     0.991,
+     1.074,
+     1.066,
+     1.068
+    ],
+    "agent_decode": 174.8,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "kvgrow",
+   "change": {
+    "set": {
+     "--kv-grow": true
+    }
+   },
+   "summary": {
+    "decode_med": 134.9,
+    "decode_agg": 132.7,
+    "decode_per_prompt": [
+     143.7,
+     120.5,
+     136.6
+    ],
+    "accept": 0.768,
+    "pp_4k": 3008.1,
+    "ttft_4k": 1.1,
+    "pp_16k": 3784.1,
+    "ttft_16k": 3.5,
+    "pp_32k": 3696.5,
+    "ttft_32k": 7.2,
+    "decode_16k": 100.7,
+    "decode_32k": 112.2,
+    "agent_ttft": [
+     0.991,
+     1.076,
+     1.067,
+     1.073
+    ],
+    "agent_decode": 147.1,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "k8v4",
+   "change": {
+    "set": {
+     "--kv": "k8v4"
+    }
+   },
+   "summary": {
+    "decode_med": 141.4,
+    "decode_agg": 135.4,
+    "decode_per_prompt": [
+     142.6,
+     123.0,
+     142.8
+    ],
+    "accept": 0.801,
+    "pp_4k": 2899.3,
+    "ttft_4k": 1.1,
+    "pp_16k": 3542.1,
+    "ttft_16k": 3.8,
+    "pp_32k": 3448.9,
+    "ttft_32k": 7.7,
+    "decode_16k": 106.4,
+    "decode_32k": 112.0,
+    "agent_ttft": [
+     0.982,
+     1.096,
+     1.103,
+     1.104
+    ],
+    "agent_decode": 126.9,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "mtpq4",
+   "change": {
+    "set": {
+     "--mtp-q4": "all"
+    }
+   },
+   "summary": {
+    "decode_med": 139.6,
+    "decode_agg": 133.3,
+    "decode_per_prompt": [
+     141.5,
+     118.7,
+     142.7
+    ],
+    "accept": 0.779,
+    "pp_4k": 3007.2,
+    "ttft_4k": 1.1,
+    "pp_16k": 3766.3,
+    "ttft_16k": 3.5,
+    "pp_32k": 3680.8,
+    "ttft_32k": 7.2,
+    "decode_16k": 105.6,
+    "decode_32k": 124.6,
+    "agent_ttft": [
+     0.978,
+     1.073,
+     1.061,
+     1.065
+    ],
+    "agent_decode": 144.6,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "thp",
+   "change": {
+    "env": {
+     "STRATA_ARENA_THP": "1"
+    }
+   },
+   "summary": {
+    "decode_med": 140.9,
+    "decode_agg": 135.4,
+    "decode_per_prompt": [
+     143.4,
+     122.1,
+     143.1
+    ],
+    "accept": 0.798,
+    "pp_4k": 2997.8,
+    "ttft_4k": 1.1,
+    "pp_16k": 3747.2,
+    "ttft_16k": 3.6,
+    "pp_32k": 3690.4,
+    "ttft_32k": 7.2,
+    "decode_16k": 105.4,
+    "decode_32k": 125.0,
+    "agent_ttft": [
+     0.983,
+     1.079,
+     1.086,
+     1.077
+    ],
+    "agent_decode": 135.4,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "pcie03",
+   "change": {
+    "set": {
+     "--pcie-frac": "0.3"
+    }
+   },
+   "summary": {
+    "decode_med": 140.1,
+    "decode_agg": 130.3,
+    "decode_per_prompt": [
+     142.0,
+     112.3,
+     141.6
+    ],
+    "accept": 0.789,
+    "pp_4k": 3018.8,
+    "ttft_4k": 1.1,
+    "pp_16k": 3767.9,
+    "ttft_16k": 3.5,
+    "pp_32k": 3695.8,
+    "ttft_32k": 7.2,
+    "decode_16k": 107.6,
+    "decode_32k": 115.3,
+    "agent_ttft": [
+     0.985,
+     1.072,
+     1.082,
+     1.078
+    ],
+    "agent_decode": 142.6,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "pcie055",
+   "change": {
+    "set": {
+     "--pcie-frac": "0.55"
+    }
+   },
+   "summary": {
+    "decode_med": 132.9,
+    "decode_agg": 129.6,
+    "decode_per_prompt": [
+     137.8,
+     116.5,
+     137.2
+    ],
+    "accept": 0.79,
+    "pp_4k": 2994.4,
+    "ttft_4k": 1.1,
+    "pp_16k": 3771.6,
+    "ttft_16k": 3.5,
+    "pp_32k": 3679.5,
+    "ttft_32k": 7.2,
+    "decode_16k": 103.0,
+    "decode_32k": 108.4,
+    "agent_ttft": [
+     0.996,
+     1.068,
+     1.078,
+     1.072
+    ],
+    "agent_decode": 130.8,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "base3",
+   "change": {},
+   "summary": {
+    "decode_med": 139.8,
+    "decode_agg": 135.6,
+    "decode_per_prompt": [
+     143.6,
+     122.8,
+     142.8
+    ],
+    "accept": 0.786,
+    "pp_4k": 3013.3,
+    "ttft_4k": 1.1,
+    "pp_16k": 3769.4,
+    "ttft_16k": 3.5,
+    "pp_32k": 3701.8,
+    "ttft_32k": 7.2,
+    "decode_16k": 107.8,
+    "decode_32k": 119.9,
+    "agent_ttft": [
+     1.002,
+     1.065,
+     1.087,
+     1.081
+    ],
+    "agent_decode": 130.8,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "comboA160",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "160"
+    }
+   },
+   "summary": {
+    "decode_med": 148.8,
+    "decode_agg": 140.6,
+    "decode_per_prompt": [
+     148.8,
+     121.5,
+     156.6
+    ],
+    "accept": 0.785,
+    "pp_4k": 3070.6,
+    "ttft_4k": 1.1,
+    "pp_16k": 3851.9,
+    "ttft_16k": 3.5,
+    "pp_32k": 3775.0,
+    "ttft_32k": 7.0,
+    "decode_16k": 119.5,
+    "decode_32k": 118.0,
+    "agent_ttft": [
+     0.987,
+     1.053,
+     1.055,
+     1.054
+    ],
+    "agent_decode": 144.9,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "comboA80",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "80"
+    }
+   },
+   "summary": {
+    "decode_med": 149.8,
+    "decode_agg": 140.0,
+    "decode_per_prompt": [
+     149.8,
+     120.5,
+     155.0
+    ],
+    "accept": 0.779,
+    "pp_4k": 3083.8,
+    "ttft_4k": 1.1,
+    "pp_16k": 3854.5,
+    "ttft_16k": 3.5,
+    "pp_32k": 3774.4,
+    "ttft_32k": 7.0,
+    "decode_16k": 125.0,
+    "decode_32k": 126.4,
+    "agent_ttft": [
+     0.985,
+     1.059,
+     1.052,
+     1.053
+    ],
+    "agent_decode": 129.0,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "comboA320",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "320"
+    }
+   },
+   "summary": {
+    "decode_med": 149.8,
+    "decode_agg": 138.7,
+    "decode_per_prompt": [
+     149.8,
+     117.4,
+     155.5
+    ],
+    "accept": 0.762,
+    "pp_4k": 3085.9,
+    "ttft_4k": 1.1,
+    "pp_16k": 3850.5,
+    "ttft_16k": 3.5,
+    "pp_32k": 3772.9,
+    "ttft_32k": 7.0,
+    "decode_16k": 117.9,
+    "decode_32k": 128.8,
+    "agent_ttft": [
+     0.98,
+     1.049,
+     1.051,
+     1.068
+    ],
+    "agent_decode": 142.4,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "comboA160_async",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "160",
+     "--adapt-async": "1"
+    }
+   },
+   "summary": {
+    "decode_med": 150.1,
+    "decode_agg": 139.1,
+    "decode_per_prompt": [
+     150.2,
+     119.2,
+     153.4
+    ],
+    "accept": 0.775,
+    "pp_4k": 3091.3,
+    "ttft_4k": 1.1,
+    "pp_16k": 3862.0,
+    "ttft_16k": 3.4,
+    "pp_32k": 3774.1,
+    "ttft_32k": 7.0,
+    "decode_16k": 113.0,
+    "decode_32k": 128.1,
+    "agent_ttft": [
+     0.984,
+     1.052,
+     1.063,
+     1.06
+    ],
+    "agent_decode": 137.6,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "comboA160_overlap",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "160"
+    },
+    "env": {
+     "STRATA_ADAPT_OVERLAP": "1"
+    }
+   },
+   "summary": {
+    "decode_med": 154.2,
+    "decode_agg": 146.2,
+    "decode_per_prompt": [
+     154.2,
+     127.4,
+     161.8
+    ],
+    "accept": 0.797,
+    "pp_4k": 3087.9,
+    "ttft_4k": 1.1,
+    "pp_16k": 3856.1,
+    "ttft_16k": 3.5,
+    "pp_32k": 3776.4,
+    "ttft_32k": 7.0,
+    "decode_16k": 118.7,
+    "decode_32k": 113.8,
+    "agent_ttft": [
+     0.996,
+     1.057,
+     1.05,
+     1.064
+    ],
+    "agent_decode": 149.6,
+    "errors": []
+   },
+   "load_s": 18.0
+  },
+  {
+   "phase": "sweep",
+   "name": "comboA160_spec5",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "160",
+     "--spec": "5",
+     "--spec-min-p": "0.7"
+    }
+   },
+   "summary": {
+    "decode_med": 151.6,
+    "decode_agg": 137.2,
+    "decode_per_prompt": [
+     151.7,
+     114.3,
+     153.3
+    ],
+    "accept": 0.835,
+    "pp_4k": 3088.9,
+    "ttft_4k": 1.1,
+    "pp_16k": 3859.9,
+    "ttft_16k": 3.5,
+    "pp_32k": 3780.9,
+    "ttft_32k": 7.0,
+    "decode_16k": 119.3,
+    "decode_32k": 135.3,
+    "agent_ttft": [
+     0.976,
+     1.049,
+     1.066,
+     1.061
+    ],
+    "agent_decode": 130.4,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "comboA160_noaux",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "160"
+    }
+   },
+   "summary": {
+    "decode_med": 149.8,
+    "decode_agg": 141.2,
+    "decode_per_prompt": [
+     149.8,
+     125.1,
+     152.2
+    ],
+    "accept": 0.782,
+    "pp_4k": 3004.7,
+    "ttft_4k": 1.1,
+    "pp_16k": 3756.4,
+    "ttft_16k": 3.5,
+    "pp_32k": 3674.6,
+    "ttft_32k": 7.2,
+    "decode_16k": 115.5,
+    "decode_32k": 130.5,
+    "agent_ttft": [
+     0.986,
+     1.063,
+     1.064,
+     1.082
+    ],
+    "agent_decode": 179.7,
+    "errors": []
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "sweep",
+   "name": "base4",
+   "change": {},
+   "summary": {
+    "decode_med": 140.6,
+    "decode_agg": 135.6,
+    "decode_per_prompt": [
+     145.5,
+     119.5,
+     146.1
+    ],
+    "accept": 0.792,
+    "pp_4k": 3013.7,
+    "ttft_4k": 1.1,
+    "pp_16k": 3782.9,
+    "ttft_16k": 3.5,
+    "pp_32k": 3677.1,
+    "ttft_32k": 7.2,
+    "decode_16k": 107.5,
+    "decode_32k": 122.1,
+    "agent_ttft": [
+     0.982,
+     1.078,
+     1.071,
+     1.073
+    ],
+    "agent_decode": 134.4,
+    "errors": []
+   },
+   "load_s": 18.0
+  },
+  {
+   "phase": "final",
+   "name": "fbase1",
+   "change": {},
+   "summary": {
+    "decode_med": 139.3,
+    "decode_agg": 132.9,
+    "decode_per_prompt": [
+     142.5,
+     117.3,
+     142.6
+    ],
+    "accept": 0.776,
+    "pp_4k": 2995.7,
+    "ttft_4k": 1.1,
+    "pp_16k": 3764.5,
+    "ttft_16k": 3.5,
+    "pp_32k": 3680.4,
+    "ttft_32k": 7.2,
+    "decode_16k": 112.1,
+    "decode_32k": 122.4,
+    "agent_ttft": [
+     0.987,
+     1.096,
+     1.063,
+     1.072
+    ],
+    "agent_decode": 155.9,
+    "errors": [],
+    "decode_32k_long": 109.9,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "final",
+   "name": "fA80ov1",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "80"
+    },
+    "env": {
+     "STRATA_ADAPT_OVERLAP": "1"
+    }
+   },
+   "summary": {
+    "decode_med": 151.8,
+    "decode_agg": 142.7,
+    "decode_per_prompt": [
+     151.8,
+     122.2,
+     159.9
+    ],
+    "accept": 0.782,
+    "pp_4k": 3079.1,
+    "ttft_4k": 1.1,
+    "pp_16k": 3853.4,
+    "ttft_16k": 3.5,
+    "pp_32k": 3782.3,
+    "ttft_32k": 7.0,
+    "decode_16k": 120.6,
+    "decode_32k": 130.9,
+    "agent_ttft": [
+     0.98,
+     1.049,
+     1.06,
+     1.052
+    ],
+    "agent_decode": 142.6,
+    "errors": [],
+    "decode_32k_long": 115.2,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "final",
+   "name": "fA160ov1",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "160"
+    },
+    "env": {
+     "STRATA_ADAPT_OVERLAP": "1"
+    }
+   },
+   "summary": {
+    "decode_med": 153.2,
+    "decode_agg": 147.5,
+    "decode_per_prompt": [
+     153.2,
+     130.8,
+     162.4
+    ],
+    "accept": 0.793,
+    "pp_4k": 2959.2,
+    "ttft_4k": 1.1,
+    "pp_16k": 3836.1,
+    "ttft_16k": 3.5,
+    "pp_32k": 3761.8,
+    "ttft_32k": 7.0,
+    "decode_16k": 120.8,
+    "decode_32k": 131.3,
+    "agent_ttft": [
+     0.986,
+     1.065,
+     1.057,
+     1.061
+    ],
+    "agent_decode": 146.6,
+    "errors": [],
+    "decode_32k_long": 118.5,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "final",
+   "name": "fbase2",
+   "change": {},
+   "summary": {
+    "decode_med": 135.2,
+    "decode_agg": 132.3,
+    "decode_per_prompt": [
+     142.1,
+     117.3,
+     141.1
+    ],
+    "accept": 0.787,
+    "pp_4k": 3005.1,
+    "ttft_4k": 1.1,
+    "pp_16k": 3785.1,
+    "ttft_16k": 3.5,
+    "pp_32k": 3682.9,
+    "ttft_32k": 7.2,
+    "decode_16k": 103.7,
+    "decode_32k": 118.3,
+    "agent_ttft": [
+     0.977,
+     1.064,
+     1.096,
+     1.076
+    ],
+    "agent_decode": 127.8,
+    "errors": [],
+    "decode_32k_long": 114.3,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "final",
+   "name": "fA80ov2",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "80"
+    },
+    "env": {
+     "STRATA_ADAPT_OVERLAP": "1"
+    }
+   },
+   "summary": {
+    "decode_med": 153.2,
+    "decode_agg": 145.1,
+    "decode_per_prompt": [
+     153.2,
+     124.7,
+     163.2
+    ],
+    "accept": 0.797,
+    "pp_4k": 3067.1,
+    "ttft_4k": 1.1,
+    "pp_16k": 3848.8,
+    "ttft_16k": 3.5,
+    "pp_32k": 3768.3,
+    "ttft_32k": 7.0,
+    "decode_16k": 124.6,
+    "decode_32k": 123.0,
+    "agent_ttft": [
+     0.983,
+     1.062,
+     1.051,
+     1.062
+    ],
+    "agent_decode": 128.2,
+    "errors": [],
+    "decode_32k_long": 116.3,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "final",
+   "name": "fA160ov2",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "160"
+    },
+    "env": {
+     "STRATA_ADAPT_OVERLAP": "1"
+    }
+   },
+   "summary": {
+    "decode_med": 152.3,
+    "decode_agg": 143.8,
+    "decode_per_prompt": [
+     152.3,
+     126.1,
+     157.9
+    ],
+    "accept": 0.804,
+    "pp_4k": 3051.6,
+    "ttft_4k": 1.1,
+    "pp_16k": 3843.8,
+    "ttft_16k": 3.5,
+    "pp_32k": 3717.3,
+    "ttft_32k": 7.1,
+    "decode_16k": 121.3,
+    "decode_32k": 123.8,
+    "agent_ttft": [
+     1.035,
+     1.083,
+     1.068,
+     1.063
+    ],
+    "agent_decode": 140.8,
+    "errors": [],
+    "decode_32k_long": 114.2,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "final",
+   "name": "fbase3",
+   "change": {},
+   "summary": {
+    "decode_med": 138.7,
+    "decode_agg": 133.9,
+    "decode_per_prompt": [
+     143.6,
+     118.8,
+     142.6
+    ],
+    "accept": 0.769,
+    "pp_4k": 2995.4,
+    "ttft_4k": 1.1,
+    "pp_16k": 3757.5,
+    "ttft_16k": 3.5,
+    "pp_32k": 3677.1,
+    "ttft_32k": 7.2,
+    "decode_16k": 105.0,
+    "decode_32k": 112.4,
+    "agent_ttft": [
+     0.979,
+     1.073,
+     1.066,
+     1.074
+    ],
+    "agent_decode": 128.8,
+    "errors": [],
+    "decode_32k_long": 113.8,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "final",
+   "name": "fA80ov3",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "80"
+    },
+    "env": {
+     "STRATA_ADAPT_OVERLAP": "1"
+    }
+   },
+   "summary": {
+    "decode_med": 151.8,
+    "decode_agg": 143.3,
+    "decode_per_prompt": [
+     151.8,
+     125.3,
+     157.2
+    ],
+    "accept": 0.775,
+    "pp_4k": 3067.6,
+    "ttft_4k": 1.1,
+    "pp_16k": 3849.9,
+    "ttft_16k": 3.5,
+    "pp_32k": 3782.0,
+    "ttft_32k": 7.0,
+    "decode_16k": 120.5,
+    "decode_32k": 133.6,
+    "agent_ttft": [
+     0.979,
+     1.052,
+     1.054,
+     1.057
+    ],
+    "agent_decode": 142.2,
+    "errors": [],
+    "decode_32k_long": 115.0,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 12.0
+  },
+  {
+   "phase": "final",
+   "name": "fA160ov3",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "160"
+    },
+    "env": {
+     "STRATA_ADAPT_OVERLAP": "1"
+    }
+   },
+   "summary": {
+    "decode_med": 155.2,
+    "decode_agg": 146.1,
+    "decode_per_prompt": [
+     155.2,
+     127.2,
+     160.6
+    ],
+    "accept": 0.794,
+    "pp_4k": 3056.9,
+    "ttft_4k": 1.1,
+    "pp_16k": 3839.8,
+    "ttft_16k": 3.5,
+    "pp_32k": 3772.2,
+    "ttft_32k": 7.0,
+    "decode_16k": 113.9,
+    "decode_32k": 114.8,
+    "agent_ttft": [
+     0.984,
+     1.057,
+     1.065,
+     1.052
+    ],
+    "agent_decode": 134.4,
+    "errors": [],
+    "decode_32k_long": 118.7,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "final",
+   "name": "perfA160ov1",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "160"
+    },
+    "env": {
+     "STRATA_ADAPT_OVERLAP": "1"
+    }
+   },
+   "summary": {
+    "decode_med": 153.4,
+    "decode_agg": 143.2,
+    "decode_per_prompt": [
+     155.3,
+     124.5,
+     154.4
+    ],
+    "accept": 0.766,
+    "pp_4k": 3051.8,
+    "ttft_4k": 1.1,
+    "pp_16k": 3847.5,
+    "ttft_16k": 3.5,
+    "pp_32k": 3759.4,
+    "ttft_32k": 7.0,
+    "decode_16k": 115.7,
+    "decode_32k": 131.5,
+    "agent_ttft": [
+     0.996,
+     1.063,
+     1.1,
+     1.1
+    ],
+    "agent_decode": 131.1,
+    "errors": [],
+    "decode_32k_long": 116.3,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 12.0
+  },
+  {
+   "phase": "final",
+   "name": "perfA160ov2",
+   "change": {
+    "set": {
+     "--vram-reserve-mib": "1024",
+     "--aux-cpus": "auto",
+     "--kv-resident": "20480",
+     "--adapt-every": "1",
+     "--adapt-decay": "0.97",
+     "--adapt-swaps": "160"
+    },
+    "env": {
+     "STRATA_ADAPT_OVERLAP": "1"
+    }
+   },
+   "summary": {
+    "decode_med": 151.9,
+    "decode_agg": 142.4,
+    "decode_per_prompt": [
+     151.9,
+     122.8,
+     157.6
+    ],
+    "accept": 0.768,
+    "pp_4k": 3056.4,
+    "ttft_4k": 1.1,
+    "pp_16k": 3849.8,
+    "ttft_16k": 3.5,
+    "pp_32k": 3771.3,
+    "ttft_32k": 7.0,
+    "decode_16k": 124.2,
+    "decode_32k": 137.5,
+    "agent_ttft": [
+     0.975,
+     1.046,
+     1.047,
+     1.056
+    ],
+    "agent_decode": 140.9,
+    "errors": [],
+    "decode_32k_long": 112.5,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "final",
+   "name": "perfbase1",
+   "change": {},
+   "summary": {
+    "decode_med": 142.3,
+    "decode_agg": 135.1,
+    "decode_per_prompt": [
+     144.8,
+     118.9,
+     145.2
+    ],
+    "accept": 0.782,
+    "pp_4k": 3007.7,
+    "ttft_4k": 1.1,
+    "pp_16k": 3774.2,
+    "ttft_16k": 3.5,
+    "pp_32k": 3693.4,
+    "ttft_32k": 7.2,
+    "decode_16k": 104.8,
+    "decode_32k": 112.7,
+    "agent_ttft": [
+     0.988,
+     1.079,
+     1.065,
+     1.063
+    ],
+    "agent_decode": 138.9,
+    "errors": [],
+    "decode_32k_long": 110.7,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 15.0
+  },
+  {
+   "phase": "verify",
+   "name": "verify_final",
+   "change": {},
+   "summary": {
+    "decode_med": 150.1,
+    "decode_agg": 142.5,
+    "decode_per_prompt": [
+     151.5,
+     125.2,
+     155.1
+    ],
+    "accept": 0.793,
+    "pp_4k": 3014.1,
+    "ttft_4k": 1.1,
+    "pp_16k": 3853.1,
+    "ttft_16k": 3.5,
+    "pp_32k": 3693.6,
+    "ttft_32k": 7.2,
+    "decode_16k": 119.3,
+    "decode_32k": 123.0,
+    "agent_ttft": [
+     1.022,
+     1.117,
+     1.079,
+     1.057
+    ],
+    "agent_decode": 124.1,
+    "errors": [],
+    "decode_32k_long": 115.2,
+    "long_gen": [
+     512,
+     512
+    ]
+   },
+   "load_s": 15.0
+  }
+ ]
+}
