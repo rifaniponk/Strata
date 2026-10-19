@@ -596,10 +596,61 @@ function inline(s) {
     .replace(/\[([^\]\n]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code class="inline">${esc(codes[+i])}</code>`);
 }
-function codeBlock(lang, code) {
-  return `<div class="st-code"><div class="st-code__head"><span>${esc(lang || "code")}</span>` +
-    `<button class="st-btn st-btn--icon" data-code-copy aria-label="Copy code">${icon("copy")}</button></div>` +
+// a code block a browser can show as it is: HTML or SVG, by its language tag or by how it starts
+function previewKind(lang, code) {
+  const l = (lang || "").toLowerCase(), head = code.trimStart().slice(0, 300).toLowerCase();
+  if (l === "svg" || head.startsWith("<svg") || (head.startsWith("<?xml") && head.includes("<svg"))) return "svg";
+  if (["html", "htm", "xhtml"].includes(l) || head.startsWith("<!doctype html") || head.startsWith("<html")) return "html";
+  return null;
+}
+// done: the block's closing fence has arrived (a block still being written gets no preview)
+function codeBlock(lang, code, done = true) {
+  const kind = done ? previewKind(lang, code) : null;
+  return `<div class="st-code"${kind ? ` data-preview="${kind}"` : ""}><div class="st-code__head"><span>${esc(lang || "code")}</span>` +
+    `<div class="st-code__actions">` +
+    (kind ? `<button class="st-btn st-btn--icon" data-code-preview aria-pressed="false" aria-label="Preview" title="Preview">${icon("eye")}</button>` : "") +
+    `<button class="st-btn st-btn--icon" data-code-copy aria-label="Copy code" title="Copy">${icon("copy")}</button></div></div>` +
     `<pre><code>${esc(code)}</code></pre></div>`;
+}
+// the page an SVG block is shown in: the drawing scaled to the frame (its viewBox keeps the shape), on white as most
+// drawings expect
+function svgDoc(svg) {
+  return `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:#fff;overflow:hidden}` +
+    `svg{display:block;width:100%;height:100%}</style>${svg}`;
+}
+// width / height of an SVG from its viewBox (else its width and height attributes), for the preview's shape
+function svgRatio(svg) {
+  const tag = (svg.match(/<svg\b[^>]*>/i) || [""])[0];
+  const vb = tag.match(/viewBox\s*=\s*["']\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
+  const w = vb ? +vb[1] : parseFloat((tag.match(/\swidth\s*=\s*["']([\d.]+)/i) || [])[1]);
+  const h = vb ? +vb[2] : parseFloat((tag.match(/\sheight\s*=\s*["']([\d.]+)/i) || [])[1]);
+  return w > 0 && h > 0 ? `${w} / ${h}` : null;
+}
+// Preview <-> Code.  The page runs in a sandboxed frame with scripts but no same-origin: it cannot read this app's
+// storage (the API key) or reach into the chat, open windows, or navigate the app.
+function togglePreview(box, btn) {
+  const pre = box.querySelector("pre");
+  let frame = box.querySelector("iframe");
+  const showing = !!frame && !frame.hidden;
+  if (!frame) {
+    const code = pre.textContent, svg = box.dataset.preview === "svg";
+    frame = document.createElement("iframe");
+    frame.className = "st-code__preview";
+    frame.setAttribute("sandbox", "allow-scripts");
+    frame.setAttribute("referrerpolicy", "no-referrer");
+    frame.title = svg ? "SVG preview" : "HTML preview";
+    const ratio = svg && svgRatio(code);                 // an SVG takes its own shape; without one, the HTML height
+    if (ratio) { frame.classList.add("st-code__preview--svg"); frame.style.aspectRatio = ratio; }
+    frame.srcdoc = svg ? svgDoc(code) : code;
+    box.appendChild(frame);
+  }
+  frame.hidden = showing;
+  pre.hidden = !showing;
+  const label = showing ? "Preview" : "Show the code";
+  btn.querySelector("use").setAttribute("href", `${SPRITE}#i-${showing ? "eye" : "code"}`);
+  btn.setAttribute("aria-pressed", String(!showing));
+  btn.setAttribute("aria-label", label);
+  btn.title = label;
 }
 function blocks(text) {
   const out = [], lines = text.split("\n");
@@ -645,7 +696,7 @@ function markdown(text) {
     html += blocks(rest.slice(0, m.index));
     rest = rest.slice(m.index + m[0].length);
     const end = rest.match(/(^|\n)```[ \t]*(\n|$)/);
-    if (!end) { html += codeBlock(m[2].trim(), rest); break; }         // still streaming
+    if (!end) { html += codeBlock(m[2].trim(), rest, false); break; }  // still streaming
     html += codeBlock(m[2].trim(), rest.slice(0, end.index));
     rest = rest.slice(end.index + end[0].length);
   }
@@ -810,6 +861,8 @@ function updateAssistant(el, m, streaming) {
     bubble.innerHTML = m.reasoning ? `<span class="muted cursor">Writing</span>` : `<span class="cursor"></span>`;
   } else {
     bubble.innerHTML = answerHtml(m);
+    // the answer is rebuilt on every token while it streams, so a preview opened now would vanish: offer it after
+    if (streaming) bubble.querySelectorAll("[data-code-preview]").forEach((b) => { b.hidden = true; });
     if (streaming) bubble.classList.add("cursor"); else bubble.classList.remove("cursor");
   }
   el.querySelector(".meta-text").textContent = m.meta || (streaming ? "" : m.stopped ? "Stopped" : "");
@@ -828,6 +881,8 @@ function scrollDown(force) { const s = $("chat-scroll"); if (force || nearBottom
 $("chat").addEventListener("click", (e) => {
   const cc = e.target.closest("[data-code-copy]");
   if (cc) { copyText(cc.closest(".st-code").querySelector("pre").textContent, cc); return; }
+  const cp = e.target.closest("[data-code-preview]");
+  if (cp) { togglePreview(cp.closest(".st-code"), cp); return; }
   const mc = e.target.closest("[data-msg-copy]");
   if (mc) { const i = +mc.closest(".st-msg").dataset.i; copyText(messages[i].text, mc); return; }
   // a tool block: its open state lives in the message (the answer is rebuilt while it streams), so the click sets it
